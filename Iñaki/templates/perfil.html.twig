@@ -1,19 +1,13 @@
-{# templates/inicio.html.twig #}
+{# templates/perfil.html.twig #}
 <!DOCTYPE html>
 <html lang=es>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
-    <link rel="stylesheet" href="CSS/inicio.css">
+    <title>Perfil</title>
+    <link rel="stylesheet" href="CSS/perfil.css">
 </head>
 <body>
-    <section>
-        <img src="IMG/ps5.jpg">
-        <img src="IMG/xbox.jpg">
-        <img src="IMG/switch.jpg">
-        <img src="IMG/pc.jpg">
-    </section>
     <div id="cabecera">
         <table>
             <tr>
@@ -24,22 +18,38 @@
             </tr>
         </table>
     </div>
-
-    <div id="novedades" class="caja-inicio">
-        Nuevos lanzamientos
+    <div id="foto-perfil">
+        Foto de perfil
     </div>
 
-    <div id="lanzamientos" class="caja-inicio">
-        Próximos lanzamientos
+    <div id="datos-perfil">
+        <table>
+            <tr>
+                <td>Nombre:</td>
+                <td>Email:</td>
+                <td>Saldo:</td>
+            </tr>
+            <tr>
+                <td>Apellidos:</td>
+                <td>Dirección:</td>
+                <td>Valoración:</td>
+            </tr>
+        </table>
     </div>
 
-    <div id="ofertas" class="caja-inicio">
-        Ofertas
+    <div id="editar" class="cajas-perfil">
+        Editar Perfil
     </div>
 
-    <div id="mercadillo" class="caja-inicio">
-        Mercado 2ª Mano
+    <div id="reservas" class="cajas-perfil">
+        Reservas pendientes
+    </div>
+
+    <div id="inventario" class="cajas-perfil">
+        Mis productos
+    </div>
+
+    <div id="ventas" class="cajas-perfil">
+        Ventas completadas
     </div>
 </body>
-</html>
-
