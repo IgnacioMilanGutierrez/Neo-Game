@@ -1,0 +1,63 @@
+{# templates/registro.html.twig #}
+<!DOCTYPE html>
+<html lang=es>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+    <link rel="stylesheet" href="CSS/registro.css">
+</head>
+<body>
+    <div id="cabecera">
+        <table>
+            <tr>
+                <td><a href="{{path('inicio')}}">Inicio</td>
+                <td>2ª Mano</td>
+                <td>Ofertas</td>
+                {% if app.User is not null %}
+                <td><a href="{{path('perfil')}}">Perfil</td>
+                {% else %}
+                <td><a href="{{path('registro')}}">Regístrate</td>
+                {% endif %}
+            </tr>
+        </table>
+    </div>
+
+    <div id="contenedor">
+        <form action="{{path('registro')}}" method="POST" onsubmit="return validarRegistro(event)">
+        <p>Nombre: <input type="text" name="nombre" id="nombre" class="registro"><br></p>
+        <p>Apellidos: <input type="text" name="apellidos" id="apellidos" class="registro"><br></p>
+        <p>Correo: <input type="mail" name="correo" id="correo" class="registro"><br></p>
+        <p>Contraseña: <input type="password" name="contraseña" id="contraseña" class="registro"><br></p>
+        <p>Dirección: <input type="text" name="direccion" id="direccion" class="registro"><br></p>
+        <input type="submit" value="registrarse" id="submit" class="boton">
+    </div>
+    <script>
+        function validarRegistro(event){
+            var nombre=document.getElementById("nombre").value
+            var apellidos=document.getElementById("apellidos").value
+            var correo=document.getElementById("correo").value
+            var contrasena=document.getElementById("contraseña").value
+            var direccion=document.getElementById("direccion").value
+            
+            if (nombre == "" || apellidos == "" || correo == "" || contraseña == "" || direccion == ""){
+                alert ("Por favor rellene todos los campos para el registro");
+                return false;
+            } 
+
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if(!emailRegex.test(correo)){
+                alert("Correo no válido, introduzca un correo válido");
+                return false;
+            }
+
+            if (contrasena.lenght < 8){
+                alert("La contraseña debe contener 8 caracteres");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>
