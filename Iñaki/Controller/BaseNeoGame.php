@@ -5,15 +5,16 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Componenet\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use PHPMailer\PHPMailer\PHPMailer;
 use Symfony\Component\Mime\Email;
-use APP\Entity\Usuario;
-use APP\Entity\Marca;
-use APP\Entity\Plataforma;
-use APP\Entity\Videojuego;
-use DateTime;
+use App\Entity\Usuario;
+use App\Entity\Marca;
+use App\Entity\Plataforma;
+use App\Entity\Videojuego;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Exception;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -29,8 +30,6 @@ class BaseNeoGame extends AbstractController
 
             $usuarioActual = $this->getUser();
             $usuarioPerfil = $entityManager->getRepository(Usuario::class)->find($id);
-
-            if
 
 
             return $this->render('perfil.html.twig');
@@ -56,7 +55,7 @@ class BaseNeoGame extends AbstractController
 
             $mailer->send($email);
         } else {
-            return $this->render('inicio.html.twig');
+            return $this->render('registro.html.twig');
         }
 
         return $this->redirectToRoute('inicio');
