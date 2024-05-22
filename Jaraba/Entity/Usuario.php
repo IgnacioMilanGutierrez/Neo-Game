@@ -39,6 +39,24 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type:'boolean', name:'UsuarioAdmin')]
     private $admin;
 
+    #[ORM\Column(type:'boolean', name:'ExisteFoto')]
+    private $foto;
+
+    #[ORM\Column(type: 'string', name: 'Token', nullable: true)]
+    private $token;
+
+    #[ORM\Column(type: 'string', name: 'NuevoNombre', nullable: true)]
+    private $nuevoNombre;
+
+    #[ORM\Column(type: 'string', name: 'NuevoApellido', nullable: true)]
+    private $nuevoApellido;
+
+    #[ORM\Column(type: 'string', name: 'NuevaContrasena', nullable: true)]
+    private $nuevaContrasena;
+
+    #[ORM\Column(type: 'string', name: 'NuevoCorreo', nullable: true)]
+    private $nuevoCorreo;
+
     public function getIdUsuario(): ?int
     {
         return $this->idUsuario;
@@ -136,6 +154,79 @@ class Usuario implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsuarioAdmin(bool $admin): self
     {
         $this->admin = $admin;
+
+        return $this;
+    }
+
+    public function getExisteFoto(): bool
+    {
+       return $this->foto;
+    }
+
+    public function setExisteFoto(bool $foto): self
+    {
+        $this->foto = $foto;
+
+        return $this;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    public function setToken(?string $token): self
+    {
+        $this->token = $token;
+
+        return $this;
+    }
+
+    public function getNuevoNombre(): ?string
+    {
+        return $this->nuevoNombre;
+    }
+
+    public function setNuevoNombre(?string $nuevoNombre): self
+    {
+        $this->nuevoNombre = $nuevoNombre;
+
+        return $this;
+    }
+
+    public function getNuevoApellido(): ?string
+    {
+        return $this->nuevoApellido;
+    }
+
+    public function setNuevoApellido(?string $nuevoApellido): self
+    {
+        $this->nuevoApellido = $nuevoApellido;
+
+        return $this;
+    }
+
+    public function getNuevaContrasena(): ?string
+    {
+        return $this->nuevaContrasena;
+    }
+
+    public function setNuevaContrasena(?string $nuevaContrasena): self
+    {
+        $this->nuevaContrasena = $nuevaContrasena;
+
+        return $this;
+    }
+
+    
+    public function getNuevoCorreo(): ?string
+    {
+        return $this->nuevoCorreo;
+    }
+
+    public function setNuevoCorreo(?string $nuevoCorreo): self
+    {
+        $this->nuevoCorreo = $nuevoCorreo;
 
         return $this;
     }
