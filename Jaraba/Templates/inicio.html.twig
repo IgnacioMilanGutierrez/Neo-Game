@@ -1,0 +1,45 @@
+{# templates/inicio.html.twig #}
+<!DOCTYPE html>
+<html lang=es>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="CSS/inicio.css">
+</head>
+<body>
+    <section>
+        <img src="IMG/ps5.jpg">
+        <img src="IMG/xbox.jpg">
+        <img src="IMG/switch.jpg">
+        <img src="IMG/pc.jpg">
+    </section>
+    <div id="cabecera">
+        <table>
+            <tr>
+                <td><a href="{{path('inicio')}}">Inicio</td>
+                <td>2ª Mano</td>
+                <td>Ofertas</td>
+                <td><a href="{{path('perfil')}}">Perfil</td>
+                <td><a href="{{path('carrito')}}">Carrito</td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="novedades" class="caja-inicio">
+        Nuevos lanzamientos
+    </div>
+
+    <div id="lanzamientos" class="caja-inicio">
+        Próximos lanzamientos
+    </div>
+
+    <div id="ofertas" class="caja-inicio">
+        Ofertas
+    </div>
+
+    <div id="mercadillo" class="caja-inicio">
+        Mercado 2ª Mano
+    </div>
+</body>
+</html>
