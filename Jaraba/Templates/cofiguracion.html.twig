@@ -20,12 +20,37 @@
     </div>
     
     <div id="datos-perfil">
-        <div>Cambiar Nombre de Usuario</div>
-        <div>Cambiar Apellidos de usuario</div>
-        <div>Cambiar Contraseña</div>
-        <div>Cambiar Correo</div>
-        <div>Cambiar Dirección</div>
-        <div>Borrar Cuenta</div>
+        <form action="{{ path('cambiar_nombre') }}" method="post">
+            <label for="nuevo_nombre">Nuevo Nombre de Usuario:</label>
+            <input type="text" id="nuevo_nombre" name="nuevo_nombre" required>
+            <button type="submit">Cambiar Nombre</button>
+        </form>
+        <form action="{{ path('cambiar_apellidos') }}" method="post">
+            <label for="nuevo_apellidos">Nuevos Apellidos de Usuario:</label>
+            <input type="text" id="nuevo_apellidos" name="nuevo_apellidos" required>
+            <button type="submit">Cambiar Apellidos</button>
+        </form>
+        
+        <form action="{{ path('cambiar_contrasena') }}" method="post">
+            <label for="nueva_contrasena">Nueva Contraseña:</label>
+            <input type="password" id="nueva_contrasena" name="nueva_contrasena" required>
+            <button type="submit">Cambiar Contraseña</button>
+        </form>
+        
+        <form action="{{ path('cambiar_correo') }}" method="post">
+            <label for="nuevo_correo">Nuevo Correo:</label>
+            <input type="email" id="nuevo_correo" name="nuevo_correo" required>
+            <button type="submit">Cambiar Correo</button>
+        </form>
+        
+        <form action="{{ path('cambiar_direccion') }}" method="post">
+            <label for="nueva_direccion">Nueva Dirección:</label>
+            <input type="text" id="nueva_direccion" name="nueva_direccion" required>
+            <button type="submit">Cambiar Dirección</button>
+        </form>
+         <form action="{{ path('borrar_cuentan') }}" method="post">
+            <button type="submit">Borra Cuenta</button>
+        </form>
     </div>
   </body>
 </html>
