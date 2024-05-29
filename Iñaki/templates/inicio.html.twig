@@ -20,7 +20,12 @@
                 <td><a href="{{path('inicio')}}">Inicio</td>
                 <td>2ª Mano</td>
                 <td>Ofertas</td>
+                <td><a href="{{path('carrito')}}">Carrito</td>
+                {% if app.User is not null %}
                 <td><a href="{{path('perfil')}}">Perfil</td>
+                {% else %}
+                <td><a href="{{path('login')}}">Regístrate/Login</td>
+                {% endif %}
             </tr>
         </table>
     </div>
@@ -37,9 +42,9 @@
         Ofertas
     </div>
 
-    <div id="mercadillo" class="caja-inicio">
+    {# <div id="mercadillo" class="caja-inicio">
         Mercado 2ª Mano
-    </div>
+    </div> #}
 </body>
 </html>
 
