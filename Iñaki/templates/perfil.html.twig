@@ -14,7 +14,11 @@
                 <td><a href="{{path('inicio')}}">Inicio</td>
                 <td>2ª Mano</td>
                 <td>Ofertas</td>
+                {% if app.User is not null %}
                 <td><a href="{{path('perfil')}}">Perfil</td>
+                {% else %}
+                <td><a href="{{path('login')}}">Regístrate/Login</td>
+                {% endif %}
             </tr>
         </table>
     </div>
