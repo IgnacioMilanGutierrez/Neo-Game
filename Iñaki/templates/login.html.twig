@@ -8,21 +8,7 @@
     <link rel="stylesheet" href="CSS/registro.css">
 </head>
 <body>
-    <div id="cabecera">
-        <table>
-            <tr>
-                <td><a href="{{path('inicio')}}">Inicio</td>
-                <td>2ª Mano</td>
-                <td>Ofertas</td>
-                {% if app.User is not null %}
-                <td><a href="{{path('perfil')}}">Perfil</td>
-                {% else %}
-                <td><a href="{{path('login')}}">Regístrate/Login</td>
-                {% endif %}
-            </tr>
-        </table>
-    </div>
-
+    {% include 'cabecera.html.twig' %}
     <div id="contenedor">
         <form action="{{path('procesar_login')}}" method="POST" onsubmit="return validarRegistro(event)">
         <p>Usuario: <input type="text" name="_username" id="nombre" class="registro"><br></p>
