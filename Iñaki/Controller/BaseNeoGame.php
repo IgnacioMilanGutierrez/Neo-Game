@@ -4,9 +4,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Componenet\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -33,13 +34,28 @@ class BaseNeoGame extends AbstractController
             $usuarioPerfil = $entityManager->getRepository(Usuario::class)->find($id);
 
 
-            return $this->render('perfil.html.twig');
+            return $this->render('perfil.html.twig', ['user' => $usuarioPerfil]);
+        }
+    
+        #[Route('/producto/{id}', name: 'producto')]
+        public function producto(EntityManagerInterface $entityManager, $id): Response{
+
+            $productoActual = $this->getVideojuego();
+            $productoDatos = $entityManager->getRepository(Usuario::class)->find($id);
+
+
+            return $this->render('perfil.html.twig', ['user' => $usuarioPerfil]);
         }
 
     #[Route('/login', name: 'login')]
         public function login(){
             return $this->render('login.html.twig');
         }
+    
+    #[ROUTE('/logout', name:'app_logout')]
+    public function logout(){
+        return $this->render('inicio.html.twig');
+    }
     
     #[Route('/procesar_login', name:'procesar_login')]
         public function process(Request $request, EntityManagerInterface $entityManager, AuthenticationUtils $authenticationUtils): Response
@@ -140,7 +156,7 @@ class BaseNeoGame extends AbstractController
             $entityManager->flush();
         }
     
-        return $this->redirectToRoute('perfil'); // Redirigir de vuelta al perfil
+        return $this->redirectToRoute('perfil'); 
     }
     #[Route('/perfil/cambiar-nombre', name: 'cambiar_nombre')]
     public function cambiarNombre(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
@@ -390,7 +406,7 @@ class BaseNeoGame extends AbstractController
     }
 
 
-    #[Route('/carrito', name: 'ver_carrito')]
+    #[Route('/carrito', name: 'carrito')]
     public function verCarrito(SessionInterface $session): Response
     {
         $carrito = $session->get('carrito', []);
@@ -464,5 +480,20 @@ class BaseNeoGame extends AbstractController
         return $this->render('pagar.html.twig', [
             'mensaje' => 'Pago realizado con éxito',
         ]);
+    }
+
+    #[Route('/novedades', name: 'novedades')]
+    public function novedades(){
+        return $this->render('inicio.html.twig');
+    }
+
+    #[Route('/ofertas', name: 'ofertas')]
+    public function ofertas(){
+        return $this->render('inicio.html.twig');
+    }
+
+    #[Route('/zona_admin', name: 'zona_admin')]
+    public function zonaAdmin(){
+        return $this->render('zonaAdmin.html.twig');
     }
 }
