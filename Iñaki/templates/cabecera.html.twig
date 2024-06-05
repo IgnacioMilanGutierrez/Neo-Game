@@ -1,0 +1,37 @@
+{# templates/cabecera.html.twig #}
+<!DOCTYPE html>
+<html lang=es>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if app.User is null %}
+    <link rel="stylesheet" href="{{asset ('CSS/cabecera.css')}}">
+    {% elseif app.User is not null %}
+        {% if app.User.usuarioAdmin == true %}
+            <link rel="stylesheet" href="{{asset ('CSS/cabeceraAdmin.css')}}">
+        {% else %}
+            <link rel="stylesheet" href="{{asset ('CSS/cabeceraLogeada.css')}}">
+        {% endif %}
+    {% endif %}
+</head>
+<body>
+        <nav>
+            <ul>
+                {% if  app.User is not null and app.User.usuarioAdmin == true %}
+                <li><a href="{{path('zona_admin')}}">Zona Administración</a></li>
+                {% endif %}
+                <li><a href="{{path('inicio')}}">Inicio</a></li>
+                <li><a href="{{path('novedades')}}">Novedades</a></li>
+                <li><a href="{{path('ofertas')}}">Ofertas</a></li>
+                <li><a href="{{path('carrito')}}">Carrito</a></li>
+                {% if app.User is not null %}
+                <li><a href="{{path('perfil', {'id': app.User.IdUsuario})}}">Perfil</a></li>
+                <li><a href="{{path('app_logout')}}">Cerrar Sesión</a></li>
+                {% else %}
+                <li><a href="{{path('login')}}">Regístrate/Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% include 'fondo.html.twig' %}
+</body>
+</html>
