@@ -14,21 +14,8 @@
         <img src="IMG/switch.jpg">
         <img src="IMG/pc.jpg">
     </section>
-    <div id="cabecera">
-        <table>
-            <tr>
-                <td><a href="{{path('inicio')}}">Inicio</td>
-                <td>2ª Mano</td>
-                <td>Ofertas</td>
-                <td><a href="{{path('carrito')}}">Carrito</td>
-                {% if app.User is not null %}
-                <td><a href="{{path('perfil')}}">Perfil</td>
-                {% else %}
-                <td><a href="{{path('login')}}">Regístrate/Login</td>
-                {% endif %}
-            </tr>
-        </table>
-    </div>
+    
+    {% include 'cabecera.html.twig' %}
 
     <div id="novedades" class="caja-inicio">
         Nuevos lanzamientos
@@ -45,6 +32,4 @@
     {# <div id="mercadillo" class="caja-inicio">
         Mercado 2ª Mano
     </div> #}
-</body>
-</html>
 
