@@ -1,0 +1,129 @@
+{# templates/perfil.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil</title>
+       <link rel="stylesheet" href="{{ asset('CSS/perfil.css') }}">
+</head>
+<body>
+    {% include 'cabecera.html.twig' %}
+    
+    <div id="foto-perfil">
+        Foto de perfil
+    </div>
+
+    <div id="datos-perfil">
+        <table>
+            <tr>
+                <td>Nombre: {{ app.user.nombreUsuario }}</td>
+                <td>Email: {{ app.user.email }}</td>
+                <td>Saldo: {{ app.user.saldo }}</td>
+            </tr>
+            <tr>
+                <td>Apellidos: {{ app.user.apellidoUsuario }}</td>
+                <td>Dirección: {{ app.user.direccion }}</td>
+                <td>Valoración: {{ app.user.valoracion }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+    <div id="editar" class="cajas-perfil">
+        <h2>Editar Perfil</h2>
+        <label for="select-config">Selecciona una opción para editar:</label>
+        <select id="select-config" onchange="showForm()">
+            <option value="">Seleccionar...</option>
+            <option value="form-nombre">Cambiar Nombre</option>
+            <option value="form-apellidos">Cambiar Apellidos</option>
+            <option value="form-contrasena">Cambiar Contraseña</option>
+            <option value="form-correo">Cambiar Correo</option>
+            <option value="form-direccion">Cambiar Dirección</option>
+        </select>
+
+        <div id="form-nombre" class="form-config">
+            <form action="{{ path('cambiar_nombre') }}" method="post">
+                <label for="nuevo_nombre">Nuevo Nombre de Usuario:</label>
+                <input type="text" id="nuevo_nombre" name="nuevo_nombre" required>
+                <button type="submit">Cambiar Nombre</button>
+            </form>
+        </div>
+        
+        <div id="form-apellidos" class="form-config">
+            <form action="{{ path('cambiar_apellidos') }}" method="post">
+                <label for="nuevo_apellidos">Nuevos Apellidos de Usuario:</label>
+                <input type="text" id="nuevo_apellidos" name="nuevo_apellidos" required>
+                <button type="submit">Cambiar Apellidos</button>
+            </form>
+        </div>
+           
+        <div id="form-contrasena" class="form-config">
+            <form action="{{ path('cambiar_contrasena') }}" method="post">
+                <label for="nueva_contrasena">Nueva Contraseña:</label>
+                <input type="password" id="nueva_contrasena" name="nueva_contrasena" required>
+                <button type="submit">Cambiar Contraseña</button>
+            </form>
+        </div>
+        
+        <div id="form-correo" class="form-config">
+            <form action="{{ path('cambiar_correo') }}" method="post">
+                <label for="nuevo_correo">Nuevo Correo:</label>
+                <input type="email" id="nuevo_correo" name="nuevo_correo" required>
+                <button type="submit">Cambiar Correo</button>
+            </form>
+        </div>
+        
+        <div id="form-direccion" class="form-config">
+            <form action="{{ path('cambiar_direccion') }}" method="post">
+                <label for="nueva_direccion">Nueva Dirección:</label>
+                <input type="text" id="nueva_direccion" name="nueva_direccion" required>
+                <button type="submit">Cambiar Dirección</button>
+            </form>
+        </div>
+
+        <div id="foto-perfil">
+    {% if app.user.fotoPerfil is defined %}
+        <img src="{{ asset(app.user.fotoPerfil) }}" alt="Foto de perfil">
+    {% else %}
+        <p>No hay foto de perfil</p>
+    {% endif %}
+</div>
+
+<form action="{{ path('perfil_cambiar_foto') }}" method="post" enctype="multipart/form-data">
+    <label for="foto_perfil">Seleccionar foto de perfil:</label>
+    <input type="file" id="foto_perfil" name="foto_perfil">
+    <button type="submit">Subir foto de perfil</button>
+</form>
+        
+        <form action="{{ path('borrar_cuentan') }}" method="post">
+            <button type="submit">Borrar Cuenta</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div id="reservas" class="cajas-perfil">
+        Reservas pendientes
+    </div>
+
+    {# <div id="inventario" class="cajas-perfil">
+        Mis productos
+    </div>
+
+    <div id="ventas" class="cajas-perfil">
+        Ventas completadas
+    </div> #}
+
+    <script>
+        function showForm() {
+            const forms = document.querySelectorAll('.form-config');
+            forms.forEach(form => form.style.display = 'none');
+            
+            const selectedValue = document.getElementById('select-config').value;
+            if (selectedValue) {
+                document.getElementById(selectedValue).style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
