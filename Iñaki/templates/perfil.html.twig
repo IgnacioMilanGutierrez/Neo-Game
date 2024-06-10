@@ -29,7 +29,19 @@
     </div>
 
     <div id="editar" class="cajas-perfil">
-        Editar Perfil
+        <b2>Editar Perfil</b2>
+        <form id="edit-profile-form" method="POST">
+            <label for="attribute">Selecciona el atributo a editar:</label>
+            <select id="attribute" name="attribute">
+                <option value="nombre">Nombre</option>
+                <option value="apellidos">Apellidos</option>
+                <option value="direccion">Dirección</option>
+                <option value="correo">Correo</option>
+            </select>
+            <div id="attribute-input">
+                <!-- Campo para ingresar el nuevo valor -->            </div>
+            <button type="submit">Guardar</button>
+        </form>
     </div>
 
     <div id="reservas" class="cajas-perfil">
@@ -43,4 +55,14 @@
     <div id="ventas" class="cajas-perfil">
         Ventas completadas
     </div> #}
+
+
+    <script>
+        document.getElementById('attribute').addEventListener('change', function() {
+            const attributeInput = document.getElementById('attribute-input');
+            const attribute = this.value;
+            let inputHtml = '<label for="new_value">Nuevo valor:</label><input type="text" id="new_value" name="new_value" />';
+            attributeInput.innerHTML = inputHtml;
+        });
+    </script>
 </body>
