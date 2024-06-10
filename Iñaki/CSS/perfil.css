@@ -38,7 +38,8 @@ tr{
 
 .cajas-perfil{
     width: 80%;
-    height: 75px;
+    height: auto;
+    padding: 10px;
     border: 2px solid black;
     border-radius: 10px;
     background-color: rgb(49, 187, 31);
