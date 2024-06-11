@@ -1,0 +1,55 @@
+{# templates/juego_detalle.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Juego</title>
+    <link rel="stylesheet" href="{{asset ('CSS/juego_detalle.css')}}">
+</head>
+<body>
+    {% include 'cabecera.html.twig' %}
+
+    <div class="detalle-juego">
+        <div class="imagen-juego">
+            <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+        </div>
+        <div class="info-juego">
+            <h1>{{ juego.nombreJuego }}</h1>
+            <p>{{ juego.descripcion }}</p>
+            <p><b>Precio: {{juego.precio}}€</b></br></br>
+            {% if juego.stock <= 0 %}
+            <button>Fuera de Stock</stock>
+            {% else %}
+            <form id="addToCartForm" action="{{ path('agregar_carrito', {'id': juego.getIdJuego()}) }}" method="POST">
+            <button type="submit">
+                Añadir al carrito
+            </button>
+        </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#addToCartForm').on('submit', function(event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        alert('Producto agregado al carrito');
+                        window.location.href = '{{ path('carrito') }}';
+                    },
+                    error: function(xhr, status, error) {
+                        location.reload();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
