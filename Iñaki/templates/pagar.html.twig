@@ -5,10 +5,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pago</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link rel="stylesheet" href="{{ asset('CSS/pagar.css') }}">
 </head>
 <body>
+{% block content %}
     <h1>Pago</h1>
-    <p>{{ mensaje }}</p>
-    <a href="{{ path('inicio') }}">Volver al inicio</a>
+
+    {% if app.session.getFlashBag().has('error') %}
+        <div class="alert alert-danger">
+            {{ app.session.getFlashBag().get('error')[0] }}
+        </div>
+    {% endif %}
+
+    <form action="{{ path('realizar_pago') }}" method="POST" id="payment-form">
+        <input type="hidden" name="amount" value="{{ total }}">
+        <div class="form-row">
+        {% if app.User is null %}
+            <p><b>Indica tu nombre: </b><input type="text" name="nombre" id="nombre"></p>
+            <p><b>Indica un correo de contacto: </b><input type="mail" name="correo" id="correo"></p>
+            <p><b>Indica tu dirección de envío: </b><input type="text" name="direccion" id="direccion"></p>
+            <p><b>Indica tu código postal: </b><input type="text" name="postal"></p>
+        {% endif %}
+            <p><b>Total a pagar: {{ total }} €</b></p>
+            <label for="card-element">
+                Ingrese los detalles de la tarjeta de crédito
+            </label>
+            <div id="card-element">
+                
+            </div>
+            <div id="card-errors" role="alert"></div>
+        </div>
+
+        <button type="submit">Pagar</button>
+    </form>
+
+    <script>
+        var stripe = Stripe('{{ stripe_publishable_key }}');
+        var elements = stripe.elements();
+        
+        var style = {
+            base: {
+                fontSize: '16px',
+                color: '#32325d',
+            }
+        };
+
+        var card = elements.create('card', {style: style});
+        card.mount('#card-element');
+        card.addEventListener('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            
+
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                   
+                    stripeTokenHandler(result.token);
+                }
+            });
+        });
+
+        
+        function stripeTokenHandler(token) {
+            
+            var form = document.getElementById('payment-form');
+            var hiddenInput = document.createElement('input');
+            hiddenInput.setAttribute('type', 'hidden');
+            hiddenInput.setAttribute('name', 'stripeToken');
+            hiddenInput.setAttribute('value', token.id);
+            form.appendChild(hiddenInput);
+
+            
+            form.submit();
+        }
+    </script>
+{% endblock %}
 </body>
 </html>
