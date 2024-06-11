@@ -1,0 +1,23 @@
+{# templates/emails/confirmacion_compra.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación de compra</title>
+</head>
+<body>
+    <h1>Confirmación de compra en Neo-Game</h1>
+    <p>Se ha procesado con éxito tu compra en Neo-Game. Aquí tienes los detalles:</p>
+    
+    <ul>
+        {% for item in carrito %}
+            <li>{{ item.nombre }} - Precio: {{ item.precio }} € - Cantidad: {{ item.cantidad }}</li>
+        {% endfor %}
+    </ul>
+    
+    <p>Fecha de compra: {{ fecha|date('d/m/Y H:i:s') }}</p>
+    <p>Has obtenido {{bonus |number_format(2, ',', '.')}} € de saldo en tu cuenta por la compra
+
+    <h3> Disfruta y muchas gracias </h3>
+</body>
+</html>
