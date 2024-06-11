@@ -19,14 +19,49 @@ section img:hover{
 
 .caja-inicio{
     width: 80%;
-    height: 75px;
+    height: auto;
+    min-height: 75px;
     border: 2px solid black;
     border-radius: 10px;
-    background-color: grey;
-    color: white;
+    background-color: white;
+    color: black;
     text-align: center;
     margin: auto;
     margin-top: 10px;
+    padding: 10px;
+}
+
+.juegos-lanzamientos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.juego-enlace {
+    margin: auto;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    flex: 1 0 20%;
+    max-width: 100px;
+}
+
+.juego-enlace img {
+    width: 150px; 
+    height: auto; 
+    object-fit: cover;
+    border-radius: 5px; 
+}
+
+.juego-enlace span {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.9em;
+}
+
+div span{
+    margin-left: 50%;
 }
 
 
