@@ -1,0 +1,19 @@
+{# templates/confirmacion_pago.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Pago</title>
+    <link rel="stylesheet" href="{{ asset('CSS/confirmacion_pago.css') }}">
+</head>
+<body>
+{% include 'cabecera.html.twig' %}
+<div class="container">
+    <h1>Confirmación de Pago</h1>
+    <p>¡Gracias por tu compra! Tu pago ha sido procesado exitosamente.</p>
+    <p>Pronto recibirás un correo electrónico con los detalles de tu pedido.</p>
+    <a href="{{ path('inicio') }}">Volver a la página principal</a>
+</div>
+</body>
+</html>
