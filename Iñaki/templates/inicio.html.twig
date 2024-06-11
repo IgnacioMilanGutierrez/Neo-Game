@@ -18,11 +18,29 @@
     {% include 'cabecera.html.twig' %}
 
     <div id="novedades" class="caja-inicio">
-        Nuevos lanzamientos
+        <b>Nuevos lanzamientos</b>
+        <div class="juegos-lanzamientos">
+            {% for juego in juegosLanzados %}
+                <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}" class="juego-enlace">
+                    <div class="juego-imagen">
+                        <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                    </div>
+                    <span><b>{{ juego.nombreJuego }}</b></span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
     <div id="lanzamientos" class="caja-inicio">
-        Próximos lanzamientos
+        <b>Próximos lanzamientos</b>
+        <div class="juegos-lanzamientos">
+            {% for juego in juegos %}
+                <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}" class="juego-enlace">
+                    <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                    <span><b>{{ juego.nombreJuego }}</b></span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
     <div id="ofertas" class="caja-inicio">
