@@ -1,0 +1,54 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.detalle-juego {
+    display: flex;
+    max-width: 800px;
+    margin: 5% auto;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    color:white;
+}
+
+.imagen-juego {
+    flex: 0 0 30%;
+    margin-right: 20px;
+}
+
+.imagen-juego img {
+    width: 100%;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.info-juego {
+    flex: 1;
+}
+
+.info-juego h1 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.info-juego p {
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
