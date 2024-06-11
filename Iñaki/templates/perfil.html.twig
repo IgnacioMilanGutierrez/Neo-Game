@@ -10,7 +10,14 @@
 <body>
     {% include 'cabecera.html.twig' %}
     <div id="foto-perfil">
-        Foto de perfil
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" style="float: left; margin-right: 10px;">
+            <defs>
+                <pattern id="imgPattern" patternUnits="objectBoundingBox" width="1" height="1">
+                    <image href="{{ asset(app.user.foto) }}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"></image>
+                </pattern>
+            </defs>
+            <circle cx="45" cy="45" r="45" fill="url(#imgPattern)" stroke="black" stroke-width="2" />
+        </svg>
     </div>
 
     <div id="datos-perfil">
@@ -18,7 +25,7 @@
             <tr>
                 <td>Nombre: {{app.user.nombreUsuario}}</td>
                 <td>Email: {{app.user.email}}</td>
-                <td>Saldo: {{app.user.saldo}}</td>
+                <td>Saldo: {{ app.user.saldo|number_format(2, ',', '.') }} €</td>
             </tr>
             <tr>
                 <td>Apellidos: {{app.user.apellidoUsuario}}</td>
@@ -28,41 +35,86 @@
         </table>
     </div>
 
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
     <div id="editar" class="cajas-perfil">
-        <b2>Editar Perfil</b2>
-        <form id="edit-profile-form" method="POST">
-            <label for="attribute">Selecciona el atributo a editar:</label>
-            <select id="attribute" name="attribute">
-                <option value="nombre">Nombre</option>
-                <option value="apellidos">Apellidos</option>
-                <option value="direccion">Dirección</option>
-                <option value="correo">Correo</option>
-            </select>
-            <div id="attribute-input">
-                <!-- Campo para ingresar el nuevo valor -->            </div>
-            <button type="submit">Guardar</button>
+        <h2>Editar Perfil</h2>
+        <label for="select-config">Selecciona una opción para editar:</label>
+        <select id="select-config" onchange="showForm()">
+            <option value="">Seleccionar...</option>
+            <option value="form-nombre">Cambiar Nombre</option>
+            <option value="form-apellidos">Cambiar Apellidos</option>
+            <option value="form-contrasena">Cambiar Contraseña</option>
+            <option value="form-correo">Cambiar Correo</option>
+            <option value="form-direccion">Cambiar Dirección</option>
+        </select> </br>
+
+        <div id="form-nombre" class="form-config">
+            <form action="{{ path('cambiar_nombre') }}" method="post">
+                </br><label for="nuevo_nombre">Nuevo Nombre de Usuario:</label>
+                <input type="text" id="nuevo_nombre" name="nuevo_nombre" required>
+                <button type="submit">Cambiar Nombre</button>
+            </form>
+        </div>
+        
+        <div id="form-apellidos" class="form-config">
+            <form action="{{ path('cambiar_apellidos') }}" method="post">
+                </br><label for="nuevo_apellidos">Nuevos Apellidos de Usuario:</label>
+                <input type="text" id="nuevo_apellidos" name="nuevo_apellidos" required>
+                <button type="submit">Cambiar Apellidos</button>
+            </form>
+        </div>
+           
+        <div id="form-contrasena" class="form-config">
+            <form action="{{ path('cambiar_contrasena') }}" method="post">
+                </br><label for="nueva_contrasena">Nueva Contraseña:</label>
+                <input type="password" id="nueva_contrasena" name="nueva_contrasena" required>
+                <button type="submit">Cambiar Contraseña</button>
+            </form>
+        </div>
+        
+        <div id="form-correo" class="form-config">
+            <form action="{{ path('cambiar_correo') }}" method="post">
+                </br><label for="nuevo_correo">Nuevo Correo:</label>
+                <input type="email" id="nuevo_correo" name="nuevo_correo" required>
+                <button type="submit">Cambiar Correo</button>
+            </form>
+        </div>
+        
+        <div id="form-direccion" class="form-config">
+            <form action="{{ path('cambiar_direccion') }}" method="post">
+                </br><label for="nueva_direccion">Nueva Dirección:</label>
+                <input type="text" id="nueva_direccion" name="nueva_direccion" required>
+                <button type="submit">Cambiar Dirección</button>
+            </form>
+        </div></br>
+
+    <form action="{{ path('perfil_cambiar_foto') }}" method="post" enctype="multipart/form-data">
+        <label for="foto_perfil">Seleccionar foto de perfil:</label>
+        <input type="file" id="foto_perfil" name="foto_perfil">
+        <button type="submit">Subir foto de perfil</button></br>
+        <p>*Se recomienda foto de un tamaño de 400x200</br>
+    </form>
+        
+        <form action="{{ path('borrar_cuenta') }}" method="post">
+            <button type="submit" id="borrar">Borrar Cuenta</button>
         </form>
     </div>
+    {% endif %}
 
     <div id="reservas" class="cajas-perfil">
         Reservas pendientes
     </div>
 
-    {# <div id="inventario" class="cajas-perfil">
-        Mis productos
-    </div>
-
-    <div id="ventas" class="cajas-perfil">
-        Ventas completadas
-    </div> #}
-
-
     <script>
-        document.getElementById('attribute').addEventListener('change', function() {
-            const attributeInput = document.getElementById('attribute-input');
-            const attribute = this.value;
-            let inputHtml = '<label for="new_value">Nuevo valor:</label><input type="text" id="new_value" name="new_value" />';
-            attributeInput.innerHTML = inputHtml;
-        });
+        function showForm() {
+            const forms = document.querySelectorAll('.form-config');
+            forms.forEach(form => form.style.display = 'none');
+            
+            const selectedValue = document.getElementById('select-config').value;
+            if (selectedValue) {
+                document.getElementById(selectedValue).style.display = 'block';
+            }
+        }
     </script>
 </body>
+</html>
