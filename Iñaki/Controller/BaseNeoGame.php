@@ -19,12 +19,61 @@ use App\Entity\Videojuego;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Exception;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Stripe\Stripe;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 
 class BaseNeoGame extends AbstractController
 {
     #[Route('/inicio', name: 'inicio')]
-        public function inicio(){
-            return $this->render('inicio.html.twig');
+        public function inicio(EntityManagerInterface $em): Response{
+            $usuario = $this->getUser();
+
+        $usuarioAdmin = $usuario && $this->isGranted('ROLE_ADMIN');
+
+        if ($usuarioAdmin) {
+            return $this->redirectToRoute('zonaAdmin');
+        } else {
+
+            $hoy = new \DateTime();
+
+            #Juegos ya lanzados
+            $queryLanzados = $em->createQuery(
+                'SELECT v
+                FROM App\Entity\Videojuego v
+                WHERE v.fechaLanzamiento <= :hoy
+                ORDER BY v.fechaLanzamiento DESC'
+            )->setParameter('hoy', $hoy)
+            ->setMaxResults(5);
+    
+            $juegosLanzados = $queryLanzados->getResult();
+
+            #Futuros Lanzamientos
+            $query = $em->createQuery(
+                'SELECT v
+                FROM App\Entity\Videojuego v
+                WHERE v.fechaLanzamiento > :hoy'
+            )->setParameter('hoy', $hoy);
+    
+            $juegos = $query->getResult();
+    
+
+            return $this->render('inicio.html.twig' ,['juegosLanzados' => $juegosLanzados, 'juegos' => $juegos,]);
+            }
+        }
+
+        #[Route('/juego/{id}', name: 'juego_detalle')]
+        public function juegoDetalle(EntityManagerInterface $em, $id): Response
+        {
+            $juego = $em->getRepository(Videojuego::class)->find($id);
+    
+            if (!$juego) {
+                throw $this->createNotFoundException('El juego no existe');
+            }
+            return $this->render('juego_detalle.html.twig', [
+                'juego' => $juego,
+            ]);
         }
 
     #[Route('/perfil/{id}', name: 'perfil')]
@@ -54,6 +103,7 @@ class BaseNeoGame extends AbstractController
     
     #[ROUTE('/logout', name:'app_logout')]
     public function logout(){
+        $session->remove('carrito');
         return $this->render('inicio.html.twig');
     }
     
@@ -69,6 +119,7 @@ class BaseNeoGame extends AbstractController
             }
 
             if(!$error){
+                $session->remove('carrito');
                 return $this->redirectToRoute('inicio');
             } else {
                 return $this->render('error_login.html.twig', ['error' => "Contraseña incorrecta"]);
@@ -121,290 +172,51 @@ class BaseNeoGame extends AbstractController
             $entityManager->persist($nuevo);
             $entityManager->flush();
 
-            return $this->redirectToRoute('inicio');
-        } else {
-            return $this->redirectToRoute('inicio');
-        }
-    }
+            $nombreCarpeta = $n . $a;
+            $rutaCarpeta = __DIR__ . '/../../public/Usuarios/' . $nombreCarpeta;
 
-    #[Route('/perfil/cambiar-foto', name: 'perfil_cambiar_foto')]
-    public function fotoperfil(Request $request): Response
-    {
-        $usuario = $this->getUser(); 
-        $existeFoto = $usuario->getExisteFoto();
-        $fotoPerfil = $request->files->get('foto_perfil');
-    
-        if ($fotoPerfil) {
-            $nombreUsuario = $usuario->getNombreUsuario();
-            
-            if ($existeFoto == false || $existeFoto == 0) {
-                $rutaCarpeta = $this->getParameter('foto_perfil_directorio') . '/' . $nombreUsuario;
-                if (!file_exists($rutaCarpeta)) {
-                    mkdir($rutaCarpeta, 0777, true);
-                }
-                $usuario->setExisteFoto(true);
-            } else {
-                $rutaCarpeta = $this->getParameter('foto_perfil_directorio') . '/' . $nombreUsuario;
+            if (!file_exists($rutaCarpeta)) {
+                mkdir($rutaCarpeta);
             }
-    
-            $nombreArchivo = uniqid() . '.' . $fotoPerfil->guessExtension();
-    
-            $fotoPerfil->move($rutaCarpeta, $nombreArchivo);
-    
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-        }
-    
-        return $this->redirectToRoute('perfil'); 
-    }
-    #[Route('/perfil/cambiar-nombre', name: 'cambiar_nombre')]
-    public function cambiarNombre(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
-    {
-        $usuario = $this->getUser();
-        $nuevoNombre = $request->request->get('nuevo_nombre');
-
-        if ($nuevoNombre) {
-            $token = bin2hex(random_bytes(16));
-            $usuario->setToken($token);
-            $usuario->setNuevoNombre($nuevoNombre);
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $email = (new Email())
-                ->from('no_replyNeoGame@gmail.com')
-                ->to($usuario->getEmail())
-                ->subject('Confirmar Cambio de Nombre de Usuario')
-                ->html("<p>Para confirmar el cambio de nombre de usuario, haz clic en el siguiente enlace:</p>
-                        <p><a href='http://localhost:8000/perfil/confirmar-cambio-nombre/{$token}'>Confirmar Cambio de Nombre</a></p>");
-
-            $mailer->send($email);
-
-            $this->addFlash('success', 'Se ha enviado un correo de confirmación para cambiar el nombre de usuario.');
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/confirmar-cambio-nombre/{token}', name: 'confirmar_cambio_nombre')]
-    public function confirmarCambioNombre(EntityManagerInterface $entityManager, $token): Response
-    {
-        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['token' => $token]);
-
-        if ($usuario) {
-            $usuario->setNombreUsuario($usuario->getNuevoNombre());
-            $usuario->setNuevoNombre(null);
-            $usuario->setToken(null);
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'El nombre de usuario ha sido cambiado exitosamente.');
-        } else {
-            $this->addFlash('error', 'Token inválido o expirado.');
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/cambiar-apellidos', name: 'cambiar_apellidos')]
-    public function cambiarApellidos(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
-    {
-        $usuario = $this->getUser();
-        $nuevosApellidos = $request->request->get('nuevo_apellidos');
-
-        if ($nuevosApellidos) {
-            $token = bin2hex(random_bytes(16));
-            $usuario->setToken($token);
-            $usuario->setNuevoApellido($nuevosApellidos);  // Necesitarás agregar este campo en tu entidad Usuario
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $email = (new Email())
-                ->from('no_replyNeoGame@gmail.com')
-                ->to($usuario->getEmail())
-                ->subject('Confirmar Cambio de Apellidos de Usuario')
-                ->html("<p>Para confirmar el cambio de apellidos de usuario, haz clic en el siguiente enlace:</p>
-                        <p><a href='http://localhost:8000/perfil/confirmar-cambio-apellidos/{$token}'>Confirmar Cambio de Apellidos</a></p>");
-
-            $mailer->send($email);
-
-            $this->addFlash('success', 'Se ha enviado un correo de confirmación para cambiar los apellidos de usuario.');
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/confirmar-cambio-apellidos/{token}', name: 'confirmar_cambio_apellidos')]
-    public function confirmarCambioApellidos(EntityManagerInterface $entityManager, $token): Response
-    {
-        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['token' => $token]);
-
-        if ($usuario) {
-            $usuario->setApellidoUsuario($usuario->getNuevoApellido());  // Ajustar en la entidad Usuario
-            $usuario->setNuevoApellido(null);
-            $usuario->setToken(null);
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Los apellidos de usuario han sido cambiados exitosamente.');
-        } else {
-            $this->addFlash('error', 'Token inválido o expirado.');
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-
-    #[Route('/perfil/cambiar-contrasena', name: 'cambiar_contrasena')]
-    public function cambiarContrasena(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
-    {
-        $usuario = $this->getUser();
-        $nuevaContrasena = $request->request->get('nueva_contrasena');
-
-        if ($nuevaContrasena) {
-            $token = bin2hex(random_bytes(16));
-            $usuario->setToken($token);
-            $usuario->setNuevaContrasena($passwordHasher->hashPassword($usuario, $nuevaContrasena));  // Necesitarás agregar este campo en tu entidad Usuario
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $email = (new Email())
-                ->from('no_replyNeoGame@gmail.com')
-                ->to($usuario->getEmail())
-                ->subject('Confirmar Cambio de Contraseña')
-                ->html("<p>Para confirmar el cambio de contraseña, haz clic en el siguiente enlace:</p>
-                        <p><a href='http://localhost:8000/perfil/confirmar-cambio-contrasena/{$token}'>Confirmar Cambio de Contraseña</a></p>");
-
-            $mailer->send($email);
-
-            $this->addFlash('success', 'Se ha enviado un correo de confirmación para cambiar la contraseña.');
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/confirmar-cambio-contrasena/{token}', name: 'confirmar_cambio_contrasena')]
-    public function confirmarCambioContrasena(EntityManagerInterface $entityManager, $token): Response
-    {
-        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['token' => $token]);
-
-        if ($usuario) {
-            $usuario->setContraseña($usuario->getNuevaContrasena());  // Ajustar en la entidad Usuario
-            $usuario->setNuevaContrasena(null);
-            $usuario->setToken(null);
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-        }
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/cambiar-correo', name: 'cambiar_correo')]
-    public function cambiarEmail(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
-    {
-        $usuario = $this->getUser();
-        $nuevosApellidos = $request->request->get('nuevo_correo');
-
-        if ($nuevosApellidos) {
-            $token = bin2hex(random_bytes(16));
-            $usuario->setToken($token);
-            $usuario->setEmail($nuevoCorreo);  // Necesitarás agregar este campo en tu entidad Usuario
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-            $email = (new Email())
-                ->from('no_replyNeoGame@gmail.com')
-                ->to($usuario->getEmail())
-                ->subject('Confirmar Cambio de Correo de Usuario')
-                ->html("<p>Para confirmar el cambio de correo de usuario, haz clic en el siguiente enlace:</p>
-                        <p><a href='http://localhost:8000/perfil/confirmar-cambio-correo/{$token}'>Confirmar Cambio de Correo</a></p>");
-
-            $mailer->send($email);
-
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/confirmar-cambio-correo/{token}', name: 'confirmar_cambio_correo')]
-    public function confirmarCambioCorreo(EntityManagerInterface $entityManager, $token): Response
-    {
-        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['token' => $token]);
-
-        if ($usuario) {
-            $usuario->setcorreo($usuario->getNuevoCorreo());  // Ajustar en la entidad Usuario
-            $usuario->setNuevoCorreo(null);
-            $usuario->setToken(null);
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/cambiar-direccion', name: 'cambiar_direccion')]
-    public function cambiarDireccion(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
-    {
-        $usuario = $this->getUser();
-        $nuevaDireccion = $request->request->get('nueva_direccion');
-
-        if ($nuevaDireccion) {
-            $usuario->setDireccion($nuevaDireccion);  // Necesitarás agregar este campo en tu entidad Usuario
-
-            $entityManager->persist($usuario);
-            $entityManager->flush();
-
-        }
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-
-    #[Route('/perfil/borrar-cuenta', name: 'borrar_cuenta')]
-    public function cambiarBorrarCuenta(Request $request, MailerInterface $mailer, EntityManagerInterface $entityManager): Response
-    {
-        $usuario = $this->getUser();
-
-        $usuario->setToken($token);
-        $entityManager->persist($usuario);
-        $entityManager->flush();
-
-        $email = (new Email())
-            ->from('no_replyNeoGame@gmail.com')
-            ->to($usuario->getEmail())
-            ->subject('Confirmar Borro Cuenta')
-            ->html("<p>Para confirmar el borro de cuenta, haz clic en el siguiente enlace:</p><br>
-                    <p>(Una vez que se efectue el borrado perdera todo y sera irrecuperable)</p><br>
-                    <p><a href='http://localhost:8000/perfil/confirmar-borro-cuenta/{$token}'>Confirmar Cambio de Correo</a></p>");
-
-        $mailer->send($email);
-
-
-        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-    }
-
-    #[Route('/perfil/confirmar-borro-cuenta/{token}', name: 'confirmar_borro_cuenta')]
-    public function confirmarBorroCuenta(EntityManagerInterface $entityManager, $token): Response
-    {
-        $usuario = $entityManager->getRepository(Usuario::class)->findOneBy(['token' => $token]);
-
-        if ($usuario) {
-            $entityManager->remove($usuario);
-            $entityManager->flush();
-
             return $this->redirectToRoute('inicio');
-        } 
+        } else {
+            return $this->redirectToRoute('inicio');
+        }
     }
 
+    #[Route('/cambiar-foto', name: 'perfil_cambiar_foto')]
+    public function cambiarFotoPerfil(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $usuario = $this->getUser();
+    $fotoPerfilFile = $request->files->get('foto_perfil');
+
+    if($fotoPerfilFile instanceof UploadedFile){
+        $nombreUsuario = $usuario->getNombreUsuario();
+        $apellidoUsuario = $usuario->getApellidoUsuario(); 
+
+        $rutaCarpeta = $this->getParameter('kernel.project_dir') . '/public/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/';
+
+            if (!file_exists($rutaCarpeta)) {
+                mkdir($rutaCarpeta, 0777, true);
+            }
+
+            $nombreArchivo = 'foto.jpg';
+            $rutaFotoPerfil = '/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/' . $nombreArchivo;
+
+            if (file_exists($rutaFotoPerfil)) {
+                unlink($rutaFotoPerfil);
+            }
+
+            // Mover el archivo al directorio de destino
+            $fotoPerfilFile->move($rutaCarpeta, $nombreArchivo);
+
+        $usuario->setFoto($rutaFotoPerfil);
+        $entityManager->flush();
+    }
+
+    return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
+
+}
 
     #[Route('/carrito', name: 'carrito')]
     public function verCarrito(SessionInterface $session): Response
@@ -458,7 +270,7 @@ class BaseNeoGame extends AbstractController
             $session->set('carrito', $carrito);
         }
 
-        return $this->redirectToRoute('ver_carrito');
+        return $this->redirectToRoute('carrito');
     }
 
     #[Route('/carrito/vaciar', name: 'vaciar_carrito')]
@@ -466,34 +278,175 @@ class BaseNeoGame extends AbstractController
     {
         $session->remove('carrito');
 
-        return $this->redirectToRoute('ver_carrito');
+        return $this->redirectToRoute('carrito');
     }
 
     #[Route('/carrito/pagar', name: 'pagar_carrito')]
     public function pagarCarrito(SessionInterface $session): Response
     {
-        // Aquí puedes añadir la lógica para el proceso de pago
-        // Por ahora, simplemente vaciamos el carrito y mostramos un mensaje de éxito
-
-        $session->remove('carrito');
+        $stripePublishableKey = $this->getParameter('stripe_publishable_key');
+        $carrito = $session->get('carrito', []);
+        $total = 0;
+        foreach ($carrito as $item) {
+            $total += $item['precio'] * $item['cantidad'];
+        }
 
         return $this->render('pagar.html.twig', [
-            'mensaje' => 'Pago realizado con éxito',
-        ]);
+            'stripe_publishable_key' => $stripePublishableKey, 'total' => $total]);
     }
 
     #[Route('/novedades', name: 'novedades')]
     public function novedades(){
-        return $this->render('inicio.html.twig');
+        $usuario = $this->getUser();
+
+        $usuarioAdmin = $usuario && $this->isGranted('ROLE_ADMIN');
+
+        if ($usuarioAdmin) {
+            return $this->redirectToRoute('zonaAdmin');
+        } else {
+            return $this->render('inicio.html.twig');
+        }
     }
+
 
     #[Route('/ofertas', name: 'ofertas')]
     public function ofertas(){
+        $usuario = $this->getUser();
+
+        $usuarioAdmin = $usuario && $this->isGranted('ROLE_ADMIN');
+
+        if ($usuarioAdmin) {
+            return $this->redirectToRoute('zonaAdmin');
+        } else {
         return $this->render('inicio.html.twig');
+        }
     }
 
-    #[Route('/zona_admin', name: 'zona_admin')]
-    public function zonaAdmin(){
-        return $this->render('zonaAdmin.html.twig');
+    #[Route('/pago', name: 'realizar_pago')]
+public function realizarPago(Request $request, SessionInterface $session, EntityManagerInterface $entityManager, Security $security, MailerInterface $mailer): Response
+{
+    $token = $request->request->get('stripeToken');
+    $nombre = $request->request->get('nombre');
+    $correo = $request->request->get('correo');
+    $direccion = $request->request->get('direccion');
+    Stripe::setApiKey($this->getParameter('stripe_api_key'));
+
+    $carrito = $session->get('carrito', []);
+    $total = 0;
+    foreach ($carrito as $item) {
+        $total += $item['precio'] * $item['cantidad'];
+    }
+
+    try {
+        $user = $security->getUser();
+
+        if ($user === null) {
+            $customer = \Stripe\Customer::create([
+                'name' => $nombre,
+                'email' => $correo,
+                'address' => [
+                    'line1' => $direccion,
+                ],
+                'source' => $token,
+            ]);
+
+            \Stripe\Charge::create([
+                'amount' => $total * 100,
+                'currency' => 'eur',
+                'customer' => $customer->id,
+                'description' => 'Compra en Neo-Game',
+                'metadata' => [
+                    'nombre' => $nombre,
+                    'correo' => $correo,
+                    'direccion' => $direccion,
+                ],
+            ]);
+        } else {
+            // Obtener o crear el cliente en Stripe para el usuario
+            $stripeCustomerId = $user->getStripeCustomerId();
+            if (!$stripeCustomerId) {
+                $customer = \Stripe\Customer::create([
+                    'name' => $user->getNombreUsuario() . ' ' . $user->getApellidoUsuario(),
+                    'email' => $user->getEmail(),
+                    'address' => [
+                        'line1' => $user->getDireccion(),
+                    ],
+                    'source' => $token,
+                ]);
+                $stripeCustomerId = $customer->id;
+                // Asignar el ID de cliente de Stripe al usuario en la base de datos
+                $user->setStripeCustomerId($stripeCustomerId);
+                $entityManager->persist($user);
+                $entityManager->flush();
+            } else {
+                $customer = \Stripe\Customer::retrieve($stripeCustomerId);
+                // Añadir la nueva fuente de pago al cliente si es necesario
+                $customer->source = $token;
+                $customer->save();
+            }
+
+            \Stripe\Charge::create([
+                'amount' => $total * 100,
+                'currency' => 'eur',
+                'customer' => $stripeCustomerId,
+                'description' => 'Compra en Neo-Game',
+                'metadata' => [
+                    'nombre' => $user->getNombreUsuario(),
+                    'correo' => $user->getEmail(),
+                    'direccion' => $user->getDireccion(),
+                ],
+            ]);
+        }
+
+        $bonus = $total * 0.05;
+        if ($user !== null) {
+            $user->setSaldo($user->getSaldo() + $bonus);
+            $entityManager->persist($user);
+            try {
+                $email = (new Email())
+                    ->from('tu_correo@gmail.com')
+                    ->to($user->getEmail())
+                    ->subject('Confirmación de compra en Neo-Game')
+                    ->html($this->renderView(
+                        'emails/confirmacion_compra.html.twig',
+                        ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
+                    ));
+        
+                $mailer->send($email);
+        
+                $this->addFlash('success', 'Correo electrónico de confirmación enviado correctamente.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
+            }
+        }
+
+        foreach ($carrito as $id => $item) {
+            $videojuego = $entityManager->getRepository(Videojuego::class)->find($id);
+
+            if ($videojuego) {
+                $nuevoStock = $videojuego->getStock() - $item['cantidad'];
+                if ($nuevoStock < 0) {
+                    $this->addFlash('error', 'Stock insuficiente para el videojuego: ' . $videojuego->getNombreJuego());
+                    return $this->redirectToRoute('carrito');
+                }
+                $videojuego->setStock($nuevoStock);
+                $entityManager->persist($videojuego);
+            }
+        }
+
+        $entityManager->flush();
+        $session->remove('carrito');
+        return $this->redirectToRoute('confirmacion_pago');
+    } catch (\Stripe\Exception\CardException $e) {
+        $this->addFlash('error', $e->getMessage());
+        return $this->redirectToRoute('carrito'); // Redireccionar al carrito si hay un error
+    }
+}
+
+
+        #[Route('/confirmacion-pago', name: 'confirmacion_pago')]
+    public function confirmacionPago(): Response
+    {
+        return $this->render('confirmacion_pago.html.twig');
     }
 }
