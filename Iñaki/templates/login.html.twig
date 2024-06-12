@@ -5,16 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="CSS/registro.css">
+    <link rel="stylesheet" href="{{asset ('CSS/login.css')}}">
 </head>
 <body>
     {% include 'cabecera.html.twig' %}
     <div id="contenedor">
         <form action="{{path('procesar_login')}}" method="POST" onsubmit="return validarRegistro(event)">
-        <p>Usuario: <input type="text" name="_username" id="nombre" class="registro"><br></p>
+        <p>Nombre de Usuario: <input type="text" name="_username" id="nombre" class="registro"><br></p>
         <p>Contraseña: <input type="password" name="_password" id="contrasena" class="registro"><br></p>
         <input type="submit" value="Login" id="submit" class="boton"><br>
-        <p><a href="{{path('registro')}}">Regístrate si no tienes cuenta</p>
+        <p><a href="{{path('registro')}}">Regístrate si no tienes cuenta</p></br>
+        <div id="animacion">
+            <div class="user-icon"></div>
+            <div class="login-animation"></div>
+        </div>
     </div>
+
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
 </body>
 </html>
