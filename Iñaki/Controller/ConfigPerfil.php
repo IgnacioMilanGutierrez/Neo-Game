@@ -278,4 +278,37 @@ class ConfigPerfil extends AbstractController
         } 
     }
     
+    #[Route('/cambiar-foto', name: 'perfil_cambiar_foto')]
+    public function cambiarFotoPerfil(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $usuario = $this->getUser();
+    $fotoPerfilFile = $request->files->get('foto_perfil');
+
+    if($fotoPerfilFile instanceof UploadedFile){
+        $nombreUsuario = $usuario->getNombreUsuario();
+        $apellidoUsuario = $usuario->getApellidoUsuario(); 
+
+        $rutaCarpeta = $this->getParameter('kernel.project_dir') . '/public/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/';
+
+            if (!file_exists($rutaCarpeta)) {
+                mkdir($rutaCarpeta, 0777, true);
+            }
+
+            $nombreArchivo = 'foto.jpg';
+            $rutaFotoPerfil = '/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/' . $nombreArchivo;
+
+            if (file_exists($rutaFotoPerfil)) {
+                unlink($rutaFotoPerfil);
+            }
+
+            // Mover el archivo al directorio de destino
+            $fotoPerfilFile->move($rutaCarpeta, $nombreArchivo);
+
+        $usuario->setFoto($rutaFotoPerfil);
+        $entityManager->flush();
+    }
+
+    return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
+
+}
 }
