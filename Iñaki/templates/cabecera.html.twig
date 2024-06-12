@@ -6,12 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% if app.User is null %}
     <link rel="stylesheet" href="{{asset ('CSS/cabecera.css')}}">
-    {% elseif app.User is not null %}
-        {% if app.User.usuarioAdmin == true %}
-            <link rel="stylesheet" href="{{asset ('CSS/cabeceraAdmin.css')}}">
-        {% else %}
+    {% else %}
             <link rel="stylesheet" href="{{asset ('CSS/cabeceraLogeada.css')}}">
-        {% endif %}
     {% endif %}
 </head>
 <body>
@@ -32,6 +28,6 @@
                 {% endif %}
             </ul>
         </nav>
-        {% include 'fondo.html.twig' %}
+        {# {% include 'fondo.html.twig' %} #}
 </body>
 </html>
