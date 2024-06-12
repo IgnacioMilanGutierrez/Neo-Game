@@ -54,7 +54,7 @@ class BaseNeoGame extends AbstractController
                 'SELECT v
                 FROM App\Entity\Videojuego v
                 WHERE v.fechaLanzamiento > :hoy'
-            )->setParameter('hoy', $hoy);
+            )->setParameter('hoy', $hoy)->setMaxResults(5);
     
             $juegos = $query->getResult();
     
@@ -184,40 +184,6 @@ class BaseNeoGame extends AbstractController
         }
     }
 
-    #[Route('/cambiar-foto', name: 'perfil_cambiar_foto')]
-    public function cambiarFotoPerfil(Request $request, EntityManagerInterface $entityManager): Response
-{
-    $usuario = $this->getUser();
-    $fotoPerfilFile = $request->files->get('foto_perfil');
-
-    if($fotoPerfilFile instanceof UploadedFile){
-        $nombreUsuario = $usuario->getNombreUsuario();
-        $apellidoUsuario = $usuario->getApellidoUsuario(); 
-
-        $rutaCarpeta = $this->getParameter('kernel.project_dir') . '/public/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/';
-
-            if (!file_exists($rutaCarpeta)) {
-                mkdir($rutaCarpeta, 0777, true);
-            }
-
-            $nombreArchivo = 'foto.jpg';
-            $rutaFotoPerfil = '/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/' . $nombreArchivo;
-
-            if (file_exists($rutaFotoPerfil)) {
-                unlink($rutaFotoPerfil);
-            }
-
-            // Mover el archivo al directorio de destino
-            $fotoPerfilFile->move($rutaCarpeta, $nombreArchivo);
-
-        $usuario->setFoto($rutaFotoPerfil);
-        $entityManager->flush();
-    }
-
-    return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-
-}
-
     #[Route('/carrito', name: 'carrito')]
     public function verCarrito(SessionInterface $session): Response
     {
@@ -296,16 +262,30 @@ class BaseNeoGame extends AbstractController
     }
 
     #[Route('/novedades', name: 'novedades')]
-    public function novedades(){
+    public function novedades(EntityManagerInterface $entityManager, Security $security){
         $usuario = $this->getUser();
 
         $usuarioAdmin = $usuario && $this->isGranted('ROLE_ADMIN');
 
         if ($usuarioAdmin) {
             return $this->redirectToRoute('zonaAdmin');
-        } else {
-            return $this->render('inicio.html.twig');
         }
+
+        $haceUnMes = new \DateTime('-1 month');
+        $ahora = new \DateTime('now');
+
+        $repository = $entityManager->getRepository(Videojuego::class);
+        $novedades = $repository->createQueryBuilder('v')
+            ->where('v.fechaLanzamiento >= :haceUnMes')
+            ->andWhere('v.fechaLanzamiento <= :ahora')
+            ->setParameter('haceUnMes', $haceUnMes)
+            ->setParameter('ahora', $ahora)
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('novedades.html.twig', [
+            'novedades' => $novedades,
+        ]);
     }
 
 
@@ -318,135 +298,41 @@ class BaseNeoGame extends AbstractController
         if ($usuarioAdmin) {
             return $this->redirectToRoute('zonaAdmin');
         } else {
-        return $this->render('inicio.html.twig');
+        return $this->render('ofertas.html.twig');
         }
     }
 
-    #[Route('/pago', name: 'realizar_pago')]
-public function realizarPago(Request $request, SessionInterface $session, EntityManagerInterface $entityManager, Security $security, MailerInterface $mailer): Response
-{
-    $token = $request->request->get('stripeToken');
-    $nombre = $request->request->get('nombre');
-    $correo = $request->request->get('correo');
-    $direccion = $request->request->get('direccion');
-    Stripe::setApiKey($this->getParameter('stripe_api_key'));
-
-    $carrito = $session->get('carrito', []);
-    $total = 0;
-    foreach ($carrito as $item) {
-        $total += $item['precio'] * $item['cantidad'];
-    }
-
-    try {
-        $user = $security->getUser();
-
-        if ($user === null) {
-            $customer = \Stripe\Customer::create([
-                'name' => $nombre,
-                'email' => $correo,
-                'address' => [
-                    'line1' => $direccion,
-                ],
-                'source' => $token,
-            ]);
-
-            \Stripe\Charge::create([
-                'amount' => $total * 100,
-                'currency' => 'eur',
-                'customer' => $customer->id,
-                'description' => 'Compra en Neo-Game',
-                'metadata' => [
-                    'nombre' => $nombre,
-                    'correo' => $correo,
-                    'direccion' => $direccion,
-                ],
-            ]);
-        } else {
-            // Obtener o crear el cliente en Stripe para el usuario
-            $stripeCustomerId = $user->getStripeCustomerId();
-            if (!$stripeCustomerId) {
-                $customer = \Stripe\Customer::create([
-                    'name' => $user->getNombreUsuario() . ' ' . $user->getApellidoUsuario(),
-                    'email' => $user->getEmail(),
-                    'address' => [
-                        'line1' => $user->getDireccion(),
-                    ],
-                    'source' => $token,
-                ]);
-                $stripeCustomerId = $customer->id;
-                // Asignar el ID de cliente de Stripe al usuario en la base de datos
-                $user->setStripeCustomerId($stripeCustomerId);
-                $entityManager->persist($user);
-                $entityManager->flush();
-            } else {
-                $customer = \Stripe\Customer::retrieve($stripeCustomerId);
-                // Añadir la nueva fuente de pago al cliente si es necesario
-                $customer->source = $token;
-                $customer->save();
-            }
-
-            \Stripe\Charge::create([
-                'amount' => $total * 100,
-                'currency' => 'eur',
-                'customer' => $stripeCustomerId,
-                'description' => 'Compra en Neo-Game',
-                'metadata' => [
-                    'nombre' => $user->getNombreUsuario(),
-                    'correo' => $user->getEmail(),
-                    'direccion' => $user->getDireccion(),
-                ],
-            ]);
-        }
-
-        $bonus = $total * 0.05;
-        if ($user !== null) {
-            $user->setSaldo($user->getSaldo() + $bonus);
-            $entityManager->persist($user);
-            try {
-                $email = (new Email())
-                    ->from('tu_correo@gmail.com')
-                    ->to($user->getEmail())
-                    ->subject('Confirmación de compra en Neo-Game')
-                    ->html($this->renderView(
-                        'emails/confirmacion_compra.html.twig',
-                        ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
-                    ));
-        
-                $mailer->send($email);
-        
-                $this->addFlash('success', 'Correo electrónico de confirmación enviado correctamente.');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
-            }
-        }
-
-        foreach ($carrito as $id => $item) {
-            $videojuego = $entityManager->getRepository(Videojuego::class)->find($id);
-
-            if ($videojuego) {
-                $nuevoStock = $videojuego->getStock() - $item['cantidad'];
-                if ($nuevoStock < 0) {
-                    $this->addFlash('error', 'Stock insuficiente para el videojuego: ' . $videojuego->getNombreJuego());
-                    return $this->redirectToRoute('carrito');
-                }
-                $videojuego->setStock($nuevoStock);
-                $entityManager->persist($videojuego);
-            }
-        }
-
-        $entityManager->flush();
-        $session->remove('carrito');
-        return $this->redirectToRoute('confirmacion_pago');
-    } catch (\Stripe\Exception\CardException $e) {
-        $this->addFlash('error', $e->getMessage());
-        return $this->redirectToRoute('carrito'); // Redireccionar al carrito si hay un error
-    }
-}
-
-
-        #[Route('/confirmacion-pago', name: 'confirmacion_pago')]
-    public function confirmacionPago(): Response
+    #[Route('/carrito/incrementar/{id}', name: 'incrementar_cantidad')]
+    public function incrementarCantidad($id, SessionInterface $session, EntityManagerInterface $entityManager): RedirectResponse
     {
-        return $this->render('confirmacion_pago.html.twig');
+        $carrito = $session->get('carrito', []);
+        $videojuego = $entityManager->getRepository(Videojuego::class)->find($id);
+
+        if ($videojuego && isset($carrito[$id])) {
+            if ($carrito[$id]['cantidad'] < $videojuego->getStock()) {
+                $carrito[$id]['cantidad']++;
+            } else {
+                $this->addFlash('error', 'No hay suficiente stock para este producto.');
+            }
+        }
+
+        $session->set('carrito', $carrito);
+        return $this->redirectToRoute('carrito');
+    }
+
+    #[Route('/carrito/decrementar/{id}', name: 'decrementar_cantidad')]
+    public function decrementarCantidad($id, SessionInterface $session): RedirectResponse
+    {
+        $carrito = $session->get('carrito', []);
+
+        if (isset($carrito[$id])) {
+            $carrito[$id]['cantidad']--;
+            if ($carrito[$id]['cantidad'] <= 0) {
+                unset($carrito[$id]);
+            }
+        }
+
+        $session->set('carrito', $carrito);
+        return $this->redirectToRoute('carrito');
     }
 }
