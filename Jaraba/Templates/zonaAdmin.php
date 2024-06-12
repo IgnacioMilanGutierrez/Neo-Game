@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Zona Admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <script>
+        function mostrarFormulario(formularioId) {
+            document.querySelectorAll('.formulario').forEach(function(form) {
+                form.classList.add('hidden');
+            });
+
+            document.getElementById(formularioId).classList.remove('hidden');
+        }
+
+        function mostrarSeccion(seccionId) {
+            document.querySelectorAll('.seccion').forEach(function(seccion) {
+                seccion.classList.add('hidden');
+            });
+
+            document.querySelectorAll('.formulario').forEach(function(form) {
+                form.classList.add('hidden');
+            });
+
+            document.getElementById(seccionId).classList.remove('hidden');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1>Zona Admin</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="javascript:void(0);" onclick="mostrarSeccion('seccion-productos')">Productos</a></li>
+                    <li><a href="javascript:void(0);" onclick="mostrarSeccion('seccion-marcas')">Marcas</a></li>
+                    <li><a href="javascript:void(0);" onclick="mostrarSeccion('seccion-plataformas')">Plataformas</a></li>
+                    <li><a href="javascript:void(0);" onclick="mostrarSeccion('seccion-usuarios')">Usuarios</a></li>
+                    <li><a href="javascript:void(0);" onclick="mostrarSeccion('seccion-otros')">Otros</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <div id="main">
+            <h1>Gestión de Productos, Marcas, Plataformas, Usuarios y Otros</h1>
+
+            
+            <div id="seccion-productos" class="seccion hidden">
+                <h2>Productos</h2>
+                <button onclick="mostrarFormulario('formulario-borrar')">Borrar Producto</button>
+                <button onclick="mostrarFormulario('formulario-editar')">Editar Producto</button>
+                <button onclick="mostrarFormulario('formulario-subir')">Subir Producto</button>
+
+                <!-- Formularios para Productos -->
+                <div id="formulario-borrar" class="formulario hidden">
+                    <h2>Borrar Producto</h2>
+                    <form action="{{ path('borrar_producto') }}" method="post">
+                        <label for="nombre">Nombre del Videojuego:</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                        <label for="plataforma">Plataforma:</label>
+                        <input type="text" id="plataforma" name="plataforma" required>
+                        <button type="submit">Borrar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-editar" class="formulario hidden">
+                    <h2>Editar Producto</h2>
+                    <form action="{{ path('editar_producto') }}" method="post">
+                        <label for="id">ID del Videojuego:</label>
+                        <input type="text" id="id" name="id" required>
+                        <label for="campo">Campo a Modificar:</label>
+                        <select id="campo" name="campo" required>
+                            <option value="nombreJuego">Nombre</option>
+                            <option value="imagen">Imagen</option>
+                            <option value="precio">Precio</option>
+                            <option value="fechaLanzamiento">Fecha de Lanzamiento</option>
+                            <option value="stock">Stock</option>
+                        </select>
+                        <label for="valor">Nuevo Valor:</label>
+                        <input type="text" id="valor" name="valor" required>
+                        <button type="submit">Editar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-subir" class="formulario hidden">
+                    <h2>Subir Producto</h2>
+                    <form action="{{ path('subir_producto') }}" method="post">
+                        <label for="nombre">Nombre del Videojuego:</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                        <label for="imagen">URL de la Imagen:</label>
+                        <input type="text" id="imagen" name="imagen" required>
+                        <label for="plataforma">Plataforma:</label>
+                        <input type="text" id="plataforma" name="plataforma" required>
+                        <label for="precio">Precio:</label>
+                        <input type="number" step="0.01" id="precio" name="precio" required>
+                        <label for="fechaLanzamiento">Fecha de Lanzamiento:</label>
+                        <input type="date" id="fechaLanzamiento" name="fechaLanzamiento" required>
+                        <label for="stock">Stock:</label>
+                        <input type="number" id="stock" name="stock" required>
+                        <button type="submit">Subir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="seccion-marcas" class="seccion hidden">
+                <h2>Marcas</h2>
+                <button onclick="mostrarFormulario('formulario-borrar-marca')">Borrar Marca</button>
+                <button onclick="mostrarFormulario('formulario-editar-marca')">Editar Marca</button>
+                <button onclick="mostrarFormulario('formulario-subir-marca')">Subir Marca</button>
+
+                <!-- Formularios para Marcas -->
+                <div id="formulario-borrar-marca" class="formulario hidden">
+                    <h2>Borrar Marca</h2>
+                    <form action="{{ path('borrar_marca') }}" method="post">
+                        <label for="nombreMarca">Nombre de la Marca:</label>
+                        <input type="text" id="nombreMarca" name="nombreMarca" required>
+                        <button type="submit">Borrar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-editar-marca" class="formulario hidden">
+                    <h2>Editar Marca</h2>
+                    <form action="{{ path('editar_marca') }}" method="post">
+                        <label for="idMarca">ID de la Marca:</label>
+                        <input type="text" id="idMarca" name="idMarca" required>
+                        <label for="nombreMarca">Nuevo Nombre:</label>
+                        <input type="text" id="nombreMarca" name="nombreMarca" required>
+                        <button type="submit">Editar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-subir-marca" class="formulario hidden">
+                    <h2>Subir Marca</h2>
+                    <form action="{{ path('subir_marca') }}" method="post">
+                        <label for="nombreMarca">Nombre de la Marca:</label>
+                        <input type="text" id="nombreMarca" name="nombreMarca" required>
+                        <button type="submit">Subir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="seccion-plataformas" class="seccion hidden">
+                <h2>Plataformas</h2>
+                <button onclick="mostrarFormulario('formulario-borrar-plataforma')">Borrar Plataforma</button>
+                <button onclick="mostrarFormulario('formulario-editar-plataforma')">Editar Plataforma</button>
+                <button onclick="mostrarFormulario('formulario-subir-plataforma')">Subir Plataforma</button>
+
+                <!-- Formularios para Plataformas -->
+                <div id="formulario-borrar-plataforma" class="formulario hidden">
+                    <h2>Borrar Plataforma</h2>
+                    <form action="{{ path('borrar_plataforma') }}" method="post">
+                        <label for="nombrePlataforma">Nombre de la Plataforma:</label>
+                        <input type="text" id="nombrePlataforma" name="nombrePlataforma" required>
+                        <button type="submit">Borrar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-editar-plataforma" class="formulario hidden">
+                    <h2>Editar Plataforma</h2>
+                    <form action="{{ path('editar_plataforma') }}" method="post">
+                        <label for="idPlataforma">ID de la Plataforma:</label>
+                        <input type="text" id="idPlataforma" name="idPlataforma" required>
+                        <label for="nombrePlataforma">Nuevo Nombre:</label>
+                        <input type="text" id="nombrePlataforma" name="nombrePlataforma" required>
+                        <button type="submit">Editar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-subir-plataforma" class="formulario hidden">
+                    <h2>Subir Plataforma</h2>
+                    <form action="{{ path('subir_plataforma') }}" method="post">
+                        <label for="nombrePlataforma">Nombre de la Plataforma:</label>
+                        <input type="text" id="nombrePlataforma" name="nombrePlataforma" required>
+                        <button type="submit">Subir</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="seccion-usuarios" class="seccion hidden">
+                <h2>Usuarios</h2>
+                <button onclick="mostrarFormulario('formulario-cambiar-datos-usuario')">Cambiar datos de Usuario</button>
+                <button onclick="mostrarFormulario('formulario-borrar-cuenta')">Borrar cuenta</button>
+                <button onclick="mostrarFormulario('formulario-anadir-saldo')">Añadir saldo</button>
+                <button onclick="mostrarFormulario('formulario-quitar-saldo')">Quitar saldo</button>
+
+                <!-- Formularios para Usuarios -->
+                <div id="formulario-cambiar-datos-usuario" class="formulario hidden">
+                    <h2>Cambiar datos de Usuario</h2>
+                    <form action="{{ path('cambiar_datos_usuario') }}" method="post">
+                        <label for="idUsuario">ID del Usuario:</label>
+                        <input type="text" id="idUsuario" name="idUsuario" required>
+                        <label for="campoUsuario">Campo a Modificar:</label>
+                        <select id="campoUsuario" name="campoUsuario" required>
+                            <option value="nombreUsuario">Nombre</option>
+                            <option value="apellidoUsuario">Apellido</option>
+                            <option value="email">Email</option>
+                            <option value="contraseña">Contraseña</option>
+                            <option value="direccion">Dirección</option>
+                        </select>
+                        <label for="valorUsuario">Nuevo Valor:</label>
+                        <input type="text" id="valorUsuario" name="valorUsuario" required>
+                        <button type="submit">Cambiar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-borrar-cuenta" class="formulario hidden">
+                    <h2>Borrar cuenta</h2>
+                    <form action="{{ path('borrar_cuenta') }}" method="post">
+                        <label for="idUsuarioBorrar">ID del Usuario:</label>
+                        <input type="text" id="idUsuarioBorrar" name="idUsuarioBorrar" required>
+                        <button type="submit">Borrar</button>
+                    </form>
+                </div>
+
+                <div id="formulario-anadir-saldo" class="formulario hidden">
+                    <h2>Añadir saldo</h2>
+                    <form action="{{ path('anadir_saldo') }}" method="post">
+                        <label for="idUsuarioSaldo">ID del Usuario:</label>
+                        <input type="text" id="idUsuarioSaldo" name="idUsuarioSaldo" required>
+                        <label for="montoSaldo">Saldo a Añadir:</label>
+                        <input type="number" step="0.01" id="montoSaldo" name="montoSaldo" required>
+                        <button type="submit">Añadir</button>
+                    </form>
+                </div>
+
+                <div id="formulario-quitar-saldo" class="formulario hidden">
+                    <h2>Quitar saldo</h2>
+                    <form action="{{ path('quitar_saldo') }}" method="post">
+                        <label for="idUsuarioQuitarSaldo">ID del Usuario:</label>
+                        <input type="text" id="idUsuarioQuitarSaldo" name="idUsuarioQuitarSaldo" required>
+                        <label for="montoQuitarSaldo">Quitar a Quitar:</label>
+                        <input type="number" step="0.01" id="montoQuitarSaldo" name="montoQuitarSaldo" required>
+                        <button type="submit">Quitar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="seccion-otros" class="seccion hidden">
+                <h2>Otros</h2>
+                <button onclick="mostrarFormulario('formulario-crear-codigo')">Crear código de descuento</button>
+
+                <!-- Formularios para Otros -->
+                <div id="formulario-crear-codigo" class="formulario hidden">
+    <h2>Crear Código de Descuento</h2>
+    <form action="{{ path('crear_codigo_descuento') }}" method="post">
+        <label for="codigo">Código:</label>
+        <input type="text" id="codigo" name="codigo" required>
+        <label for="descuento">Descuento (%):</label>
+        <input type="number" id="descuento" name="descuento" min="1" max="100" required>
+        <label for="fechaCaducidad">Fecha de Caducidad:</label>
+        <input type="date" id="fechaCaducidad" name="fechaCaducidad" required>
+        <button type="submit">Crear</button>
+    </form>
+</div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>Gestión de Productos © 2024</p>
+    </footer>
+</body>
+</html>
