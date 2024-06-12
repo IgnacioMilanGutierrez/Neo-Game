@@ -1,0 +1,32 @@
+{# templates/novedades.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novedades</title>
+    <link rel="stylesheet" href="{{ asset('css/novedades.css') }}">
+</head>
+<body>
+    
+    {% include 'cabecera.html.twig' %}
+    <div class="container">
+        <h1>Novedades del Último Mes</h1>
+        <div class="juegos-container">
+            {% for juego in novedades %}
+                <div class="juego">
+                    <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}">
+                        <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                        <h2>{{ juego.nombreJuego }}</h2>
+                        <p>{{ juego.descripcion|length > 100 ? juego.descripcion|slice(0, 100) ~ '...' : juego.descripcion }}</p>
+                        <span class="precio">{{ juego.precio }} €</span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
+</body>
+</html>
