@@ -1,24 +1,21 @@
 {# templates/fondo.html.twig #}
 <!DOCTYPE html>
-<html lang=es>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videojuego Background</title>
+    <link rel="stylesheet" href="{{ asset('CSS/fondo.css') }}">
 </head>
 <body>
-    {% block styles %}
-    <style>
-        body{
-            margin:0;
-            padding:0;
-            height: 100%;
-            width: 100%;
-            background-image: url('/IMG/fondo.jpg');
-            background-repeat: no-repeat;
-            background-position: center center;
-            background-size: cover; 
-        }
-    </style>
-    {% endblock %}
+    <div class="fondo">
+        {% for i in 0..50 %}
+            <div class="estrella" style="top: {{ random(0, 100) }}%; left: {{ random(0, 100) }}%;"></div>
+        {% endfor %}
+        
+        <div class="nube" style="animation-delay: 0s;"></div>
+        <div class="nube" style="top: 30%; animation-delay: 20s;"></div>
+        <div class="nube" style="top: 40%; animation-delay: 40s;"></div>
+    </div>
 </body>
 </html>
