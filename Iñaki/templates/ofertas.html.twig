@@ -1,0 +1,21 @@
+{# templates/confirmacion_pago.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ofertas</title>
+    <link rel="stylesheet" href="{{ asset('CSS/ofertas.css') }}">
+</head>
+<body>
+{% include 'cabecera.html.twig' %}
+<div class="container">
+    <h1>Aviso de Ofertas</h1>
+    <p>Actualmente ninguno de nuestros productos tiene alguna oferta</p>
+    <p>¡Te recomendamos que entres diariamente para ver las noveades!</p>
+    <a href="{{ path('inicio') }}">Volver a la página principal</a>
+</div>
+{% include 'footer.html.twig' %}
+{% include 'fondo.html.twig' %}
+</body>
+</html>
