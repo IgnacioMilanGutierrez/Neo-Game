@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="CSS/carrito.css">
 </head>
 <body>
+    {% include 'cabecera.html.twig' %}
+    <div class="container">
     <h1>Carrito de Compras</h1>
 
     {% if carrito is empty %}
@@ -27,9 +29,13 @@
                 {% for id, item in carrito %}
                     <tr>
                         <td>{{ item.nombre }}</td>
-                        <td>{{ item.precio }}</td>
-                        <td>{{ item.cantidad }}</td>
-                        <td>{{ item.precio * item.cantidad }}</td>
+                        <td>{{ item.precio }} €</td>
+                        <td>
+                            <a href="{{ path('decrementar_cantidad', {id: id}) }}">-</a>
+                            {{ item.cantidad }}
+                             <a href="{{ path('incrementar_cantidad', {id: id}) }}">+</a>
+                        </td>
+                        <td>{{ item.precio * item.cantidad }} €</td>
                         <td>
                             <a href="{{ path('eliminar_carrito', {id: id}) }}">Eliminar</a>
                         </td>
@@ -37,17 +43,37 @@
                 {% endfor %}
             </tbody>
         </table>
-        <div style="text-align: right; margin-top: 20px;">
-            <strong>Total: {{ total }}</strong>
+        <div class="total">
+            <strong>Total: {{ total }} €</strong>
         </div>
-        <div style="text-align: right; margin-top: 10px;">
+
+        {# Formulario para el código de descuento #}
+        <form action="{{ path('aplicar_descuento') }}" method="post">
+            <label for="codigo_descuento">Código de Descuento:</label>
+            <input type="text" id="codigo_descuento" name="codigo_descuento">
+            <button type="submit">Aplicar</button>
+        </form>
+
+        {% if descuento is defined %}
+            <div class="descuento">
+                <strong>Descuento: {{ descuento }}%</strong>
+                <p>Ahorras: {{ total * descuento / 100 }} €</p>
+                <p>Total con descuento: {{ total - (total * descuento / 100) }} €</p>
+            </div>
+        {% endif %}
+
+        <div class="actions">
             <a href="{{ path('pagar_carrito') }}">
                 <button type="button">Pagar</button>
             </a>
         </div>
-        <div style="text-align: right; margin-top: 10px;">
+        <div class="actions">
             <a href="{{ path('vaciar_carrito') }}">Vaciar Carrito</a>
         </div>
     {% endif %}
+    </div>
+
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
 </body>
 </html>
