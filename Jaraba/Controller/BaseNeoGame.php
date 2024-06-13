@@ -22,10 +22,48 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class BaseNeoGame extends AbstractController
 {
-    #[Route('/inicio', name: 'inicio')]
-        public function inicio(){
-            return $this->render('inicio.html.twig');
-        }
+   #[Route('/inicio', name: 'inicio')]
+public function inicio(EntityManagerInterface $em): Response {
+    $usuario = $this->getUser();
+
+    $usuarioAdmin = $usuario && $this->isGranted('ROLE_ADMIN');
+
+    if ($usuarioAdmin) {
+        return $this->redirectToRoute('zonaAdmin');
+    } else {
+        $hoy = new \DateTime();
+
+        // Juegos ya lanzados
+        $queryLanzados = $em->createQuery(
+            'SELECT v
+            FROM App\Entity\Videojuego v
+            WHERE v.fechaLanzamiento <= :hoy
+            ORDER BY v.fechaLanzamiento DESC'
+        )->setParameter('hoy', $hoy)
+        ->setMaxResults(5);
+
+        $juegosLanzados = $queryLanzados->getResult();
+
+        // Futuros Lanzamientos
+        $query = $em->createQuery(
+            'SELECT v
+            FROM App\Entity\Videojuego v
+            WHERE v.fechaLanzamiento > :hoy'
+        )->setParameter('hoy', $hoy)
+        ->setMaxResults(5);
+
+        $juegos = $query->getResult();
+
+        // Todos los Juegos
+        $todosLosJuegos = $em->getRepository(Videojuego::class)->findAll();
+
+        return $this->render('inicio.html.twig', [
+            'juegosLanzados' => $juegosLanzados,
+            'juegos' => $juegos,
+            'todosLosJuegos' => $todosLosJuegos
+        ]);
+    }
+} 
 
     #[Route('/perfil/{id}', name: 'perfil')]
         public function perfil(EntityManagerInterface $entityManager, $id): Response{
