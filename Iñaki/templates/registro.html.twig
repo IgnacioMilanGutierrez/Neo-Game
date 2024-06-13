@@ -1,49 +1,117 @@
 {# templates/registro.html.twig #}
 <!DOCTYPE html>
-<html lang=es>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil</title>
-    <link rel="stylesheet" href="CSS/registro.css">
+    <title>Registro</title>
+    <link rel="stylesheet" href="{{ asset('CSS/registro.css') }}">
 </head>
 <body>
     {% include 'cabecera.html.twig' %}
+    
     <div id="contenedor">
-        <form action="{{path('registro')}}" method="POST" onsubmit="return validarRegistro(event)">
-        <p>Nombre: <input type="text" name="nombre" id="nombre" class="registro"><br></p>
-        <p>Apellidos: <input type="text" name="apellidos" id="apellidos" class="registro"><br></p>
-        <p>Correo: <input type="mail" name="correo" id="correo" class="registro"><br></p>
-        <p>Contraseña: <input type="password" name="contraseña" id="contraseña" class="registro"><br></p>
-        <p>Dirección: <input type="text" name="direccion" id="direccion" class="registro"><br></p>
-        <input type="submit" value="registrarse" id="submit" class="boton">
+        <h2>Formulario de registro</h2>
+        <form action="{{ path('registro') }}" method="POST" onsubmit="return validarRegistro(event)">
+            <p>Nombre: <input type="text" name="nombre" id="nombre" class="registro"></p>
+            <p>Apellidos: <input type="text" name="apellidos" id="apellidos" class="registro"></p>
+            <p>Correo: <input type="email" name="correo" id="correo" class="registro"></p>
+            <p>Contraseña: <input type="password" name="contrasena" id="contrasena" class="registro"></p>
+            <p>Dirección: <input type="text" name="direccion" id="direccion" class="registro"></p>
+            <input type="submit" value="Registrarse" id="submit" class="boton">
+        </form>
     </div>
+
+    <div id="barra-progreso">
+        <div id="barra" class="progreso-0"></div>
+        <div id="texto-progreso" class="texto-progreso">Por favor, completa todos los campos para registrarte.</div>
+        <div class="ventajas">
+            <h3>Ventajas de estar registrado</h3>
+                <p>- Cuenta personal propia.</p>
+                <p>- Acumulación de saldo: 5% de cada compra.</p>
+                <p>- Opción de pagar con saldo.</p>
+                <p>- Futuro acceso al mercado de segunda mano.</p>
+        </div>
+    </div>
+
     <script>
-        function validarRegistro(event){
-            var nombre=document.getElementById("nombre").value
-            var apellidos=document.getElementById("apellidos").value
-            var correo=document.getElementById("correo").value
-            var contrasena=document.getElementById("contraseña").value
-            var direccion=document.getElementById("direccion").value
-            
-            if (nombre == "" || apellidos == "" || correo == "" || contraseña == "" || direccion == ""){
-                alert ("Por favor rellene todos los campos para el registro");
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var inputs = document.getElementsByClassName('registro');
+            var barra = document.getElementById('barra');
+            barra.style.backgroundColor = 'red';
+        });
+
+        document.addEventListener('input', function() {
+            actualizarBarraProgreso();
+        });
+
+        function validarRegistro(event) {
+            var nombre = document.getElementById("nombre").value;
+            var apellidos = document.getElementById("apellidos").value;
+            var correo = document.getElementById("correo").value;
+            var contrasena = document.getElementById("contrasena").value;
+            var direccion = document.getElementById("direccion").value;
+
+            if (nombre == "" || apellidos == "" || correo == "" || contrasena == "" || direccion == "") {
+                alert("Por favor, rellene todos los campos para el registro.");
                 return false;
-            } 
+            }
 
             var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if(!emailRegex.test(correo)){
-                alert("Correo no válido, introduzca un correo válido");
+            if (!emailRegex.test(correo)) {
+                alert("Correo no válido, introduzca un correo válido.");
                 return false;
             }
 
-            if (contrasena.lenght < 8){
-                alert("La contraseña debe contener 8 caracteres");
+            if (contrasena.length < 8) {
+                alert("La contraseña debe tener al menos 8 caracteres.");
                 return false;
             }
 
+            actualizarBarraProgreso();
             return true;
         }
+
+        function actualizarBarraProgreso() {
+            var camposRellenos = 0;
+            var inputs = document.getElementsByClassName('registro');
+            var barra = document.getElementById('barra');
+            var textoProgreso = document.getElementById('texto-progreso');
+
+            for (var i = 0; i < inputs.length; i++) {
+                if (inputs[i].value !== '') {
+                    camposRellenos++;
+                }
+            }
+
+            if (camposRellenos === 0) {
+                barra.style.display = 'none';
+                textoProgreso.innerHTML = 'Por favor, completa todos los campos para registrarte.';
+            } else {
+
+                var progreso = camposRellenos * 20;
+                barra.style.width = progreso + '%'; 
+
+                if (camposRellenos >= 5) {
+                    barra.style.backgroundColor = 'green';
+                    textoProgreso.innerHTML = 'Listo para registrarse';
+                } else if (camposRellenos >=4){
+                    barra.style.backgroundColor = 'greenyellow';
+                } else if (camposRellenos >= 3) {
+                    barra.style.backgroundColor = 'yellow';
+                    textoProgreso.innerHTML = 'El 80% ya casi estás registrado en Neo-game';
+                } else if (camposRellenos >= 2) {
+                    barra.style.backgroundColor = 'orange';
+                    textoProgreso.innerHTML = 'Llevas el 40% del registro hecho, sigue así';
+                } else if (camposRellenos >= 1){
+                    barra.style.backgroundColor = 'red';
+                    textoProgreso.innerHTML = 'Por favor, completa todos los campos para registrarte.';
+                }
+            }
+        }
+
+
     </script>
 
     {% include 'footer.html.twig' %}
