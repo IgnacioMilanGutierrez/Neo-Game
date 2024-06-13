@@ -16,6 +16,7 @@ use App\Entity\Usuario;
 use App\Entity\Marca;
 use App\Entity\Plataforma;
 use App\Entity\Videojuego;
+use App\Entity\CodigoDescuento;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Exception;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -61,6 +62,20 @@ class BaseNeoGame extends AbstractController
 
             return $this->render('inicio.html.twig' ,['juegosLanzados' => $juegosLanzados, 'juegos' => $juegos,]);
             }
+        }
+
+        #[Route('/catalogo', name: 'catalogo')]
+        public function catalogo(EntityManagerInterface $em): Response
+        {
+            $todosLosJuegos = $em->getRepository(Videojuego::class)
+                ->createQueryBuilder('j')
+                ->orderBy('j.precio', 'ASC') 
+                ->getQuery()
+                ->getResult();
+
+            return $this->render('catalogo.html.twig', [
+                'todosLosJuegos' => $todosLosJuegos
+            ]);
         }
 
         #[Route('/juego/{id}', name: 'juego_detalle')]
@@ -184,6 +199,48 @@ class BaseNeoGame extends AbstractController
         }
     }
 
+    #[Route('/carrito/aplicar-descuento', name: 'aplicar_descuento', methods: ['POST'])]
+public function aplicarDescuento(Request $request, SessionInterface $session, EntityManagerInterface $entityManager): RedirectResponse
+{
+    $codigo = $request->request->get('codigo_descuento');
+
+    $codigoDescuento = $entityManager->getRepository(CodigoDescuento::class)
+        ->findOneBy(['codigo' => $codigo]);
+
+    if (!$codigoDescuento) {
+        $this->addFlash('error', 'El código de descuento no es válido.');
+        return $this->redirectToRoute('inicio');
+    }
+
+    if ($codigoDescuento->getFechaCaducidad() < new \DateTime()) {
+        $this->addFlash('error', 'El código de descuento ha caducado.');
+        return $this->redirectToRoute('inicio');
+    }
+
+    $carrito = $session->get('carrito', []);
+
+    foreach ($carrito as &$item) {
+        $subtotal = $item['precio'] * $item['cantidad'];
+        $descuentoAplicado = $subtotal * ($codigoDescuento->getDescuento() / 100);
+        $subtotalConDescuento = $subtotal - $descuentoAplicado;
+
+        $item['subtotal_descuento'] = round($subtotalConDescuento, 2);
+    }
+
+    $total = array_reduce($carrito, function ($carry, $item) {
+        return $carry + $item['subtotal_descuento'];
+    }, 0);
+
+    $session->set('total', $total);
+
+    $session->set('carrito', $carrito);
+
+    $this->addFlash('success', 'Descuento aplicado correctamente.');
+
+    return $this->render('carrito.html.twig');
+}
+
+
     #[Route('/carrito', name: 'carrito')]
     public function verCarrito(SessionInterface $session): Response
     {
@@ -280,6 +337,7 @@ class BaseNeoGame extends AbstractController
             ->andWhere('v.fechaLanzamiento <= :ahora')
             ->setParameter('haceUnMes', $haceUnMes)
             ->setParameter('ahora', $ahora)
+            ->orderBy('v.precio', 'ASC')
             ->getQuery()
             ->getResult();
 
