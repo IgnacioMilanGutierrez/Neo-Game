@@ -445,23 +445,6 @@ public function inicio(EntityManagerInterface $em): Response {
         } 
     }
 
-
-    #[Route('/carrito', name: 'carrito')]
-    public function verCarrito(SessionInterface $session): Response
-    {
-        $carrito = $session->get('carrito', []);
-        $total = array_reduce($carrito, function($carry, $item) {
-            return $carry + $item['precio'] * $item['cantidad'];
-        }, 0);
-
-        $total = (float) $total;
-
-        return $this->render('carrito.html.twig', [
-            'carrito' => $carrito,
-            'total' => $total,
-        ]);
-    }
-
     #[Route('/carrito/agregar/{id}', name: 'agregar_carrito')]
     public function agregarAlCarrito(int $id, SessionInterface $session, EntityManagerInterface $entityManager): Response
     {
@@ -509,18 +492,71 @@ public function inicio(EntityManagerInterface $em): Response {
         return $this->redirectToRoute('ver_carrito');
     }
 
+    #[Route('/carrito/aplicar-descuento', name: 'aplicar_descuento', methods: ['POST'])]
+    public function aplicarDescuento(Request $request, SessionInterface $session): RedirectResponse
+    {
+        $codigoDescuento = $request->request->get('codigo_descuento');
+        $descuento = $this->validarCodigoDescuento($codigoDescuento);
+
+        if ($descuento !== false) {
+            $session->set('descuento', $descuento);
+        } else {
+            $this->addFlash('error', 'Código de descuento no válido');
+        }
+
+        return $this->redirectToRoute('carrito');
+    }
+
+    private function validarCodigoDescuento($codigo)
+    {
+        // Aquí validamos el código de descuento. En este ejemplo, asumimos que todos los códigos
+        // válidos son números entre 1 y 100.
+        if (is_numeric($codigo) && $codigo >= 1 && $codigo <= 100) {
+            return (int) $codigo;
+        }
+
+        return false;
+    }
+
+    #[Route('/carrito', name: 'carrito')]
+    public function verCarrito(SessionInterface $session): Response
+    {
+        $carrito = $session->get('carrito', []);
+        $total = array_reduce($carrito, function($carry, $item) {
+            return $carry + $item['precio'] * $item['cantidad'];
+        }, 0);
+
+        $descuento = $session->get('descuento', 0);
+        $totalConDescuento = $total - ($total * $descuento / 100);
+        $totalAhorro = $total * $descuento / 100;
+
+        return $this->render('carrito.html.twig', [
+            'carrito' => $carrito,
+            'total' => $total,
+            'descuento' => $descuento,
+            'totalConDescuento' => $totalConDescuento,
+            'totalAhorro' => $totalAhorro,
+        ]);
+    }
+
     #[Route('/carrito/pagar', name: 'pagar_carrito')]
     public function pagarCarrito(SessionInterface $session): Response
     {
-        // Aquí puedes añadir la lógica para el proceso de pago
-        // Por ahora, simplemente vaciamos el carrito y mostramos un mensaje de éxito
+        $stripePublishableKey = $this->getParameter('stripe_publishable_key');
+        $carrito = $session->get('carrito', []);
+        $total = array_reduce($carrito, function($carry, $item) {
+            return $carry + $item['precio'] * $item['cantidad'];
+        }, 0);
 
-        $session->remove('carrito');
+        $descuento = $session->get('descuento', 0);
+        $totalConDescuento = $total - ($total * $descuento / 100);
 
         return $this->render('pagar.html.twig', [
-            'mensaje' => 'Pago realizado con éxito',
+            'stripe_publishable_key' => $stripePublishableKey,
+            'total' => $totalConDescuento,
         ]);
     }
+}
 
     #[Route('/novedades', name: 'novedades')]
     public function novedades(){
