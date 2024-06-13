@@ -10,13 +10,13 @@
 <body>
     {% include 'cabecera.html.twig' %}
     <div id="foto-perfil">
-        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" style="float: left; margin-right: 10px;">
+        <svg width="150" height="150" xmlns="http://www.w3.org/2000/svg" style="float: left; margin-right: 10px;">
             <defs>
                 <pattern id="imgPattern" patternUnits="objectBoundingBox" width="1" height="1">
-                    <image href="{{ asset(app.user.foto) }}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice"></image>
+                    <image href="{{ asset(app.user.foto) }}" x="0" y="0" width="150" height="150" preserveAspectRatio="xMidYMid slice"></image>
                 </pattern>
             </defs>
-            <circle cx="45" cy="45" r="45" fill="url(#imgPattern)" stroke="black" stroke-width="2" />
+            <circle cx="75" cy="75" r="70" fill="url(#imgPattern)" stroke="black" stroke-width="2" />
         </svg>
     </div>
 
@@ -90,7 +90,7 @@
 
     <form action="{{ path('perfil_cambiar_foto') }}" method="post" enctype="multipart/form-data">
         <label for="foto_perfil">Seleccionar foto de perfil:</label>
-        <input type="file" id="foto_perfil" name="foto_perfil">
+        <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*">
         <button type="submit">Subir foto de perfil</button></br>
         <p>*Se recomienda foto de un tamaño de 400x200</br>
     </form>
@@ -100,10 +100,6 @@
         </form>
     </div>
     {% endif %}
-
-    {# <div id="reservas" class="cajas-perfil">
-        Reservas pendientes
-    </div> #}
 
     <script>
         function showForm() {
@@ -118,5 +114,6 @@
     </script>
 
     {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
 </body>
 </html>
