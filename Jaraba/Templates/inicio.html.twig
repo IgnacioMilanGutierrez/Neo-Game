@@ -1,11 +1,10 @@
-{# templates/inicio.html.twig #}
 <!DOCTYPE html>
-<html lang=es>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio</title>
-    <link rel="stylesheet" href="CSS/inicio.css">
+    <link rel="stylesheet" href="{{ asset('CSS/inicio.css') }}">
 </head>
 <body>
     <section>
@@ -14,32 +13,48 @@
         <img src="IMG/switch.jpg">
         <img src="IMG/pc.jpg">
     </section>
-    <div id="cabecera">
-        <table>
-            <tr>
-                <td><a href="{{path('inicio')}}">Inicio</td>
-                <td>2ª Mano</td>
-                <td>Ofertas</td>
-                <td><a href="{{path('perfil')}}">Perfil</td>
-                <td><a href="{{path('carrito')}}">Carrito</td>
-            </tr>
-        </table>
-    </div>
+    
+    {% include 'cabecera.html.twig' %}
 
     <div id="novedades" class="caja-inicio">
-        Nuevos lanzamientos
+        <h3>Nuevos lanzamientos</h3>
+        <div class="juegos-lanzamientos">
+            {% for juego in juegosLanzados %}
+                <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}" class="juego-enlace">
+                    <div class="juego-imagen">
+                        <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                    </div>
+                    <span><b>{{ juego.nombreJuego }}</b></span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
     <div id="lanzamientos" class="caja-inicio">
-        Próximos lanzamientos
+        <h3>Próximos lanzamientos</h3>
+        <div class="juegos-lanzamientos">
+            {% for juego in juegos %}
+                <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}" class="juego-enlace">
+                    <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                    <span><b>{{ juego.nombreJuego }}</b></span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
-    <div id="ofertas" class="caja-inicio">
-        Ofertas
+    <div id="todos-los-juegos" class="caja-inicio">
+        <h3>Todos los Juegos</h3>
+        <div class="juegos-lanzamientos">
+            {% for juego in todosLosJuegos %}
+                <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}" class="juego-enlace">
+                    <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                    <span><b>{{ juego.nombreJuego }}</b></span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
-    <div id="mercadillo" class="caja-inicio">
-        Mercado 2ª Mano
-    </div>
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
 </body>
 </html>
