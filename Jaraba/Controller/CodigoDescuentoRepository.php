@@ -17,6 +17,8 @@ class CodigoDescuentoRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('d')
             ->andWhere('d.codigo = :codigo')
             ->andWhere('d.fechaCaducidad > :now')
+            ->andWhere('d.descuento > 0')
+            ->andWhere('d.descuento <= 100')
             ->setParameter('codigo', $codigo)
             ->setParameter('now', new \DateTime())
             ->getQuery()
