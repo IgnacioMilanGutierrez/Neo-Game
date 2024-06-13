@@ -292,18 +292,5 @@ public function inicio(EntityManagerInterface $em): Response {
         ]);
     }
 }
-    #[Route('/novedades', name: 'novedades')]
-    public function novedades(){
-        return $this->render('inicio.html.twig');
-    }
 
-    #[Route('/ofertas', name: 'ofertas')]
-    public function ofertas(){
-        return $this->render('inicio.html.twig');
-    }
-
-    #[Route('/zona_admin', name: 'zona_admin')]
-    public function zonaAdmin(){
-        return $this->render('zonaAdmin.html.twig');
-    }
 }
