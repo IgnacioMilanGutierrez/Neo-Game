@@ -1,9 +1,3 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    padding: 20px;
-}
-
 .detalle-juego {
     display: flex;
     max-width: 800px;
@@ -51,4 +45,31 @@ button {
 
 button:hover {
     background-color: #0056b3;
+}
+
+body {
+margin: 0;
+   padding: 0; 
+   background: #005f99;
+   height: 100vh;
+   width: 100%;
+   position: relative;
+}
+
+.background {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100vh;
+   z-index: -1;
+}
+
+.star {
+   position: absolute;
+   width: 2px;
+   height: 2px;
+   background: white;
+   border-radius: 50%;
+   animation: twinkle 2s infinite;
 }
