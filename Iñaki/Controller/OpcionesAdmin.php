@@ -17,6 +17,7 @@ use App\Entity\Usuario;
 use App\Entity\Marca;
 use App\Entity\Plataforma;
 use App\Entity\Videojuego;
+use App\Entity\CodigoDescuento;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Exception;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -49,25 +50,19 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $nombre = $request->request->get('nombre');
-        $imagen = $request->request->get('imagen');
         $plataforma = $request->request->get('plataforma');
         $precio = $request->request->get('precio');
         $fechaLanzamiento = new \DateTime($request->request->get('fechaLanzamiento'));
         $stock = $request->request->get('stock');
 
-        // Crear una nueva instancia de Videojuego
+
         $videojuego = new Videojuego();
         $videojuego->setNombreJuego($nombre);
-        $videojuego->setImagen($imagen);
-        // Aquí deberías manejar la relación con la plataforma según tu lógica
-        // $videojuego->setPlataformas($plataforma);
         $videojuego->setPrecio($precio);
         $videojuego->setFechaLanzamiento($fechaLanzamiento);
         $videojuego->setStock($stock);
 
-        // Persistir en la base de datos
         $entityManager->persist($videojuego);
         $entityManager->flush();
 
@@ -79,20 +74,16 @@ class OpcionesAdmin extends AbstractController
    {
        $entityManager = $this->doctrine->getManager();
 
-       // Recoger datos del formulario
        $id = $request->request->get('id');
        $campo = $request->request->get('campo');
        $valor = $request->request->get('valor');
 
-       // Obtener el videojuego a editar
        $videojuego = $this->doctrine->getRepository(Videojuego::class)->find($id);
 
-       // Verificar si el videojuego existe
        if (!$videojuego) {
            return new Response('No se encontró el videojuego con ID: '.$id);
        }
 
-       // Actualizar el campo correspondiente
        switch ($campo) {
            case 'nombreJuego':
                $videojuego->setNombreJuego($valor);
@@ -114,7 +105,6 @@ class OpcionesAdmin extends AbstractController
                return new Response('Campo no válido para editar');
        }
 
-       // Persistir en la base de datos
        $entityManager->flush();
 
        return $this->redirectToRoute('zonaAdmin');
@@ -125,23 +115,18 @@ class OpcionesAdmin extends AbstractController
    {
        $entityManager = $this->doctrine->getManager();
 
-       // Recoger datos del formulario
        $nombre = $request->request->get('nombre');
        $plataforma = $request->request->get('plataforma');
 
-       // Buscar el videojuego a borrar
        $videojuego = $this->doctrine->getRepository(Videojuego::class)->findOneBy([
            'nombreJuego' => $nombre,
-           // Aquí deberías adaptar la búsqueda según tus necesidades
-           // 'plataforma' => $plataforma,
+
        ]);
 
-       // Verificar si el videojuego existe
        if (!$videojuego) {
            return new Response('No se encontró el videojuego con nombre: '.$nombre);
        }
 
-       // Eliminar el videojuego de la base de datos
        $entityManager->remove($videojuego);
        $entityManager->flush();
 
@@ -153,14 +138,11 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $nombreMarca = $request->request->get('nombreMarca');
 
-        // Crear una nueva instancia de Marca
         $marca = new Marca();
         $marca->setNombreMarca($nombreMarca);
 
-        // Persistir en la base de datos
         $entityManager->persist($marca);
         $entityManager->flush();
 
@@ -172,22 +154,17 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idMarca = $request->request->get('idMarca');
         $nombreMarca = $request->request->get('nombreMarca');
 
-        // Obtener la marca a editar
         $marca = $this->doctrine->getRepository(Marca::class)->find($idMarca);
 
-        // Verificar si la marca existe
         if (!$marca) {
             return new Response('No se encontró la marca con ID: '.$idMarca);
         }
 
-        // Actualizar el nombre de la marca
         $marca->setNombreMarca($nombreMarca);
 
-        // Persistir en la base de datos
         $entityManager->flush();
 
         return $this->redirectToRoute('zonaAdmin');
@@ -198,20 +175,16 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $nombreMarca = $request->request->get('nombreMarca');
 
-        // Buscar la marca a borrar
         $marca = $this->doctrine->getRepository(Marca::class)->findOneBy([
             'nombreMarca' => $nombreMarca,
         ]);
 
-        // Verificar si la marca existe
         if (!$marca) {
             return new Response('No se encontró la marca con nombre: '.$nombreMarca);
         }
 
-        // Eliminar la marca de la base de datos
         $entityManager->remove($marca);
         $entityManager->flush();
 
@@ -223,14 +196,11 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $nombrePlataforma = $request->request->get('nombrePlataforma');
 
-        // Crear una nueva instancia de Plataforma
         $plataforma = new Plataforma();
         $plataforma->setNombrePlataforma($nombrePlataforma);
 
-        // Persistir en la base de datos
         $entityManager->persist($plataforma);
         $entityManager->flush();
 
@@ -242,22 +212,17 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idPlataforma = $request->request->get('idPlataforma');
         $nombrePlataforma = $request->request->get('nombrePlataforma');
 
-        // Obtener la plataforma a editar
         $plataforma = $this->doctrine->getRepository(Plataforma::class)->find($idPlataforma);
 
-        // Verificar si la plataforma existe
         if (!$plataforma) {
             return new Response('No se encontró la plataforma con ID: '.$idPlataforma);
         }
 
-        // Actualizar el nombre de la plataforma
         $plataforma->setNombrePlataforma($nombrePlataforma);
 
-        // Persistir en la base de datos
         $entityManager->flush();
 
         return $this->redirectToRoute('zonaAdmin');
@@ -268,20 +233,16 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $nombrePlataforma = $request->request->get('nombrePlataforma');
 
-        // Buscar la plataforma a borrar
         $plataforma = $this->doctrine->getRepository(Plataforma::class)->findOneBy([
             'nombrePlataforma' => $nombrePlataforma,
         ]);
 
-        // Verificar si la plataforma existe
         if (!$plataforma) {
             return new Response('No se encontró la plataforma con nombre: '.$nombrePlataforma);
         }
 
-        // Eliminar la plataforma de la base de datos
         $entityManager->remove($plataforma);
         $entityManager->flush();
 
@@ -293,20 +254,16 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idUsuario = $request->request->get('idUsuario');
         $campoUsuario = $request->request->get('campoUsuario');
         $valorUsuario = $request->request->get('valorUsuario');
 
-        // Obtener el usuario a editar
-        $usuario = $this->doctrine->getRepository(User::class)->find($idUsuario);
+        $usuario = $this->doctrine->getRepository(Usuario::class)->find($idUsuario);
 
-        // Verificar si el usuario existe
         if (!$usuario) {
             return new Response('No se encontró el usuario con ID: '.$idUsuario);
         }
 
-        // Actualizar el campo del usuario
         switch ($campoUsuario) {
             case 'nombreUsuario':
                 $usuario->setNombreUsuario($valorUsuario);
@@ -318,7 +275,6 @@ class OpcionesAdmin extends AbstractController
                 $usuario->setEmail($valorUsuario);
                 break;
             case 'contraseña':
-                // Asegúrate de manejar correctamente la contraseña
                 $usuario->setPassword($valorUsuario);
                 break;
             case 'direccion':
@@ -328,7 +284,6 @@ class OpcionesAdmin extends AbstractController
                 return new Response('Campo de usuario no válido: '.$campoUsuario);
         }
 
-        // Persistir en la base de datos
         $entityManager->flush();
 
         return $this->redirectToRoute('zonaAdmin');
@@ -339,18 +294,14 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idUsuarioBorrar = $request->request->get('idUsuarioBorrar');
 
-        // Buscar el usuario a borrar
-        $usuario = $this->doctrine->getRepository(User::class)->find($idUsuarioBorrar);
+        $usuario = $this->doctrine->getRepository(Usuario::class)->find($idUsuarioBorrar);
 
-        // Verificar si el usuario existe
         if (!$usuario) {
             return new Response('No se encontró el usuario con ID: '.$idUsuarioBorrar);
         }
 
-        // Eliminar el usuario de la base de datos
         $entityManager->remove($usuario);
         $entityManager->flush();
 
@@ -362,24 +313,19 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idUsuarioSaldo = $request->request->get('idUsuarioSaldo');
         $montoSaldo = $request->request->get('montoSaldo');
 
-        // Obtener el usuario
         $usuario = $this->doctrine->getRepository(Usuario::class)->find($idUsuarioSaldo);
 
-        // Verificar si el usuario existe
         if (!$usuario) {
             return new Response('No se encontró el usuario con ID: '.$idUsuarioSaldo);
         }
 
-        // Añadir saldo al usuario
         $saldoActual = $usuario->getSaldo();
         $nuevoSaldo = $saldoActual + $montoSaldo;
         $usuario->setSaldo($nuevoSaldo);
 
-        // Persistir en la base de datos
         $entityManager->flush();
 
         return $this->redirectToRoute('zonaAdmin');
@@ -390,29 +336,23 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $idUsuarioQuitarSaldo = $request->request->get('idUsuarioQuitarSaldo');
         $montoQuitarSaldo = $request->request->get('montoQuitarSaldo');
 
-        // Obtener el usuario
         $usuario = $this->doctrine->getRepository(Usuario::class)->find($idUsuarioQuitarSaldo);
 
-        // Verificar si el usuario existe
         if (!$usuario) {
             return new Response('No se encontró el usuario con ID: '.$idUsuarioQuitarSaldo);
         }
 
-        // Verificar si el usuario tiene suficiente saldo
         $saldoActual = $usuario->getSaldo();
         if ($saldoActual < $montoQuitarSaldo) {
             return new Response('El usuario no tiene suficiente saldo para quitar');
         }
 
-        // Quitar saldo al usuario
         $nuevoSaldo = $saldoActual - $montoQuitarSaldo;
         $usuario->setSaldo($nuevoSaldo);
 
-        // Persistir en la base de datos
         $entityManager->flush();
 
         return $this->redirectToRoute('zonaAdmin');
@@ -423,18 +363,15 @@ class OpcionesAdmin extends AbstractController
     {
         $entityManager = $this->doctrine->getManager();
 
-        // Recoger datos del formulario
         $codigo = $request->request->get('codigo');
         $descuento = $request->request->get('descuento');
         $fechaCaducidad = $request->request->get('fechaCaducidad');
 
-        // Crear una nueva instancia de CodigoDescuento
         $codigoDescuento = new CodigoDescuento();
         $codigoDescuento->setCodigo($codigo);
         $codigoDescuento->setDescuento($descuento);
         $codigoDescuento->setFechaCaducidad(new \DateTime($fechaCaducidad));
 
-        // Persistir en la base de datos
         $entityManager->persist($codigoDescuento);
         $entityManager->flush();
 
