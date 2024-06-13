@@ -223,7 +223,7 @@ class BaseNeoGame extends AbstractController
 
         $session->set('carrito', $carrito);
 
-        return $this->redirectToRoute('ver_carrito');
+        return $this->redirectToRoute('carrito');
     }
 
     #[Route('/carrito/eliminar/{id}', name: 'eliminar_carrito')]
