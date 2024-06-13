@@ -1,3 +1,11 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to top, #000, #001f3f, #003f7f, #005f99);
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
 section {
     display: flex;
     width: 100%;
@@ -11,24 +19,18 @@ section img{
     transition: .5s ease;
 }
 
-section img:hover{
-    cursor: crosshair;
-    width:25%;
-    filter: contrast(120%);
-}
-
-.caja-inicio{
+.caja-inicio {
     width: 80%;
     height: auto;
     min-height: 75px;
-    border: 2px solid black;
     border-radius: 10px;
-    background-color: white;
-    color: black;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
     text-align: center;
     margin: auto;
     margin-top: 10px;
     padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .juegos-lanzamientos {
@@ -36,32 +38,36 @@ section img:hover{
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    gap: 20px;
 }
 
 .juego-enlace {
-    margin: auto;
+    margin: 10px;
     text-align: center;
     text-decoration: none;
     color: inherit;
     flex: 1 0 20%;
-    max-width: 100px;
+    max-width: 150px; 
+    height: auto;
+    transition: transform 0.3s ease;
+    margin: 20px;
 }
 
 .juego-enlace img {
-    width: 150px; 
-    height: auto; 
+    width: 100%;
+    height: auto;
     object-fit: cover;
-    border-radius: 5px; 
+    border-radius: 5px;
+    border: 2px solid #444;
 }
 
 .juego-enlace span {
     display: block;
     margin-top: 5px;
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
-div span{
-    margin-left: 50%;
+.juego-enlace:hover {
+    transform: scale(1.2);
 }
-
 
