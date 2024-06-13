@@ -213,11 +213,11 @@ public function inicio(EntityManagerInterface $em): Response {
         return $this->redirectToRoute('ver_carrito');
     }
 
-    private $codigoDescuentoRepository;
+    private $entityManager;
 
-    public function __construct(CodigoDescuentoRepository $codigoDescuentoRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $this->codigoDescuentoRepository = $codigoDescuentoRepository;
+        $this->entityManager = $entityManager;
     }
 
     #[Route('/carrito/aplicar-descuento', name: 'aplicar_descuento', methods: ['POST'])]
@@ -238,7 +238,15 @@ public function inicio(EntityManagerInterface $em): Response {
 
     private function validarCodigoDescuento(string $codigo): ?int
     {
-        $codigoDescuento = $this->codigoDescuentoRepository->findCodigoDescuento($codigo);
+        $codigoDescuento = $this->entityManager->getRepository(CodigoDescuento::class)->createQueryBuilder('d')
+            ->andWhere('d.codigo = :codigo')
+            ->andWhere('d.fechaCaducidad > :now')
+            ->andWhere('d.descuento > 0')
+            ->andWhere('d.descuento <= 100')
+            ->setParameter('codigo', $codigo)
+            ->setParameter('now', new \DateTime())
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if ($codigoDescuento) {
             $descuento = $codigoDescuento->getDescuento();
@@ -291,6 +299,5 @@ public function inicio(EntityManagerInterface $em): Response {
             'stripe_publishable_key' => $stripePublishableKey,
         ]);
     }
-}
 
 }
