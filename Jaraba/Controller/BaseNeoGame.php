@@ -16,6 +16,7 @@ use App\Entity\Usuario;
 use App\Entity\Marca;
 use App\Entity\Plataforma;
 use App\Entity\Videojuego;
+use App\Repository\CodigoDescuentoRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Exception;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -492,6 +493,13 @@ public function inicio(EntityManagerInterface $em): Response {
         return $this->redirectToRoute('ver_carrito');
     }
 
+    private $codigoDescuentoRepository;
+
+    public function __construct(CodigoDescuentoRepository $codigoDescuentoRepository)
+    {
+        $this->codigoDescuentoRepository = $codigoDescuentoRepository;
+    }
+
     #[Route('/carrito/aplicar-descuento', name: 'aplicar_descuento', methods: ['POST'])]
     public function aplicarDescuento(Request $request, SessionInterface $session): RedirectResponse
     {
@@ -500,19 +508,23 @@ public function inicio(EntityManagerInterface $em): Response {
 
         if ($descuento !== false) {
             $session->set('descuento', $descuento);
+            $this->addFlash('success', 'Código de descuento aplicado correctamente.');
         } else {
-            $this->addFlash('error', 'Código de descuento no válido');
+            $this->addFlash('error', 'Código de descuento no válido o caducado.');
         }
 
         return $this->redirectToRoute('carrito');
     }
 
-    private function validarCodigoDescuento($codigo)
+    private function validarCodigoDescuento(string $codigo): ?int
     {
-        // Aquí validamos el código de descuento. En este ejemplo, asumimos que todos los códigos
-        // válidos son números entre 1 y 100.
-        if (is_numeric($codigo) && $codigo >= 1 && $codigo <= 100) {
-            return (int) $codigo;
+        $codigoDescuento = $this->codigoDescuentoRepository->findCodigoDescuento($codigo);
+
+        if ($codigoDescuento) {
+            $descuento = $codigoDescuento->getDescuento();
+            if ($descuento > 0 && $descuento <= 100) {
+                return $descuento;
+            }
         }
 
         return false;
@@ -552,12 +564,14 @@ public function inicio(EntityManagerInterface $em): Response {
         $totalConDescuento = $total - ($total * $descuento / 100);
 
         return $this->render('pagar.html.twig', [
+            'carrito' => $carrito,
+            'total' => $total,
+            'descuento' => $descuento,
+            'totalConDescuento' => $totalConDescuento,
             'stripe_publishable_key' => $stripePublishableKey,
-            'total' => $totalConDescuento,
         ]);
     }
 }
-
     #[Route('/novedades', name: 'novedades')]
     public function novedades(){
         return $this->render('inicio.html.twig');
