@@ -171,4 +171,40 @@ public function realizarPago(Request $request, SessionInterface $session, Entity
         return $this->render('confirmacion_pago.html.twig');
     }
 
+
+    #[Route('/pSaldo', name: 'realizar_pago_Saldo')]
+    public function pagarCarrito(Request $request, MailerInterface $mailer,SessionInterface $session)
+    {
+        $usuario = $session->get('usuario');
+        $carrito = $session->get('carrito', []);
+        $total = 0;
+        foreach ($carrito as $item) {
+            $total += $item['precio'] * $item['cantidad'];
+        }
+
+
+        if ($usuario && $usuario->getSaldo() >= $total) {
+            $usuario->setSaldo($usuario->getSaldo() - $total);
+
+            try {
+                $email = (new Email())
+                    ->from('tu_correo@gmail.com')
+                    ->to($usuario->getEmail())
+                    ->subject('Confirmación de compra en Neo-Game')
+                    ->html($this->renderView(
+                        'emails/confirmacion_compra.html.twig',
+                        ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
+                    ));
+                $mailer->send($email);
+
+                $this->addFlash('success', 'Compra realizada correctamente. Correo electrónico de confirmación enviado.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
+            }
+            return $this->redirectToRoute('confirmacion_pago');
+        } else {
+            $this->addFlash('error', 'Saldo insuficiente para completar la compra.');
+            return $this->redirectToRoute('carrito');
+        }
+    }
 }
