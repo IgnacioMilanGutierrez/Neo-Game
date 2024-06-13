@@ -1,0 +1,34 @@
+{# templates/catalogo.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo</title>
+    <link rel="stylesheet" href="{{ asset('css/catalogo.css') }}">
+</head>
+<body>
+    
+    {% include 'cabecera.html.twig' %}
+    <div class="container">
+        <h1>Todo nuestro catálogo actual</h1>
+        <div class="juegos-container">
+            {% for juego in todosLosJuegos %}
+                <div class="juego">
+                    <a href="{{ path('juego_detalle', {'id': juego.idJuego}) }}">
+                        <img src="{{ asset(juego.imagen) }}" alt="{{ juego.nombreJuego }}">
+                        <h2>{{ juego.nombreJuego }}</h2>
+                        <p>{{ juego.descripcion|length > 100 ? juego.descripcion|slice(0, 100) ~ '...' : juego.descripcion }}</p>
+                        <span class="precio">{{ juego.precio }} €</span></br></br>
+                        <form action="{{ path('agregar_carrito', {'id': juego.idJuego}) }}" method="post">
+                            <button type="submit" id="carrito">Añadir al carrito</button>
+                        </form>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
+</body>
+</html>
