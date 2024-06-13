@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -280,35 +281,35 @@ class ConfigPerfil extends AbstractController
     
     #[Route('/cambiar-foto', name: 'perfil_cambiar_foto')]
     public function cambiarFotoPerfil(Request $request, EntityManagerInterface $entityManager): Response
-{
-    $usuario = $this->getUser();
-    $fotoPerfilFile = $request->files->get('foto_perfil');
+    {
+        $usuario = $this->getUser();
+        $fotoPerfilFile = $request->files->get('foto_perfil');
 
-    if($fotoPerfilFile instanceof UploadedFile){
-        $nombreUsuario = $usuario->getNombreUsuario();
-        $apellidoUsuario = $usuario->getApellidoUsuario(); 
+        if($fotoPerfilFile instanceof UploadedFile){
+            $nombreUsuario = $usuario->getNombreUsuario();
+            $apellidoUsuario = $usuario->getApellidoUsuario(); 
 
-        $rutaCarpeta = $this->getParameter('kernel.project_dir') . '/public/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/';
+            $rutaCarpeta = $this->getParameter('kernel.project_dir') . '/public/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/';
 
-            if (!file_exists($rutaCarpeta)) {
-                mkdir($rutaCarpeta, 0777, true);
-            }
+                if (!file_exists($rutaCarpeta)) {
+                    mkdir($rutaCarpeta, 0777, true);
+                }
 
-            $nombreArchivo = 'foto.jpg';
-            $rutaFotoPerfil = '/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/' . $nombreArchivo;
+                $nombreArchivo = 'foto.jpg';
+                $rutaFotoPerfil = '/Usuarios/' . $nombreUsuario . $apellidoUsuario . '/' . $nombreArchivo;
 
-            if (file_exists($rutaFotoPerfil)) {
-                unlink($rutaFotoPerfil);
-            }
+                if (file_exists($rutaFotoPerfil)) {
+                    unlink($rutaFotoPerfil);
+                }
 
-            // Mover el archivo al directorio de destino
-            $fotoPerfilFile->move($rutaCarpeta, $nombreArchivo);
+                // Mover el archivo al directorio de destino
+                $fotoPerfilFile->move($rutaCarpeta, $nombreArchivo);
 
-        $usuario->setFoto($rutaFotoPerfil);
-        $entityManager->flush();
+            $usuario->setFoto($rutaFotoPerfil);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
+
     }
-
-    return $this->redirectToRoute('perfil', ['id' => $usuario->getIdUsuario()]);
-
-}
 }
