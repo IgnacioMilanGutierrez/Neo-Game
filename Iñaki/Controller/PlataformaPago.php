@@ -68,7 +68,6 @@ public function realizarPago(Request $request, SessionInterface $session, Entity
                 ],
             ]);
         } else {
-            // Obtener o crear el cliente en Stripe para el usuario
             $stripeCustomerId = $user->getStripeCustomerId();
             if (!$stripeCustomerId) {
                 $customer = \Stripe\Customer::create([
@@ -80,13 +79,11 @@ public function realizarPago(Request $request, SessionInterface $session, Entity
                     'source' => $token,
                 ]);
                 $stripeCustomerId = $customer->id;
-                // Asignar el ID de cliente de Stripe al usuario en la base de datos
                 $user->setStripeCustomerId($stripeCustomerId);
                 $entityManager->persist($user);
                 $entityManager->flush();
             } else {
                 $customer = \Stripe\Customer::retrieve($stripeCustomerId);
-                // Añadir la nueva fuente de pago al cliente si es necesario
                 $customer->source = $token;
                 $customer->save();
             }
@@ -173,24 +170,26 @@ public function realizarPago(Request $request, SessionInterface $session, Entity
 
 
     #[Route('/pSaldo', name: 'realizar_pago_Saldo')]
-    public function pagarCarrito(Request $request, MailerInterface $mailer,SessionInterface $session)
+    public function pagarCarrito(Request $request, MailerInterface $mailer,SessionInterface $session,EntityManagerInterface $em)
     {
-        $usuario = $session->get('usuario');
+        $usuario = $this->getUser();
         $carrito = $session->get('carrito', []);
         $total = 0;
         foreach ($carrito as $item) {
             $total += $item['precio'] * $item['cantidad'];
         }
 
-
-        if ($usuario && $usuario->getSaldo() >= $total) {
+        $bonus = 0;
+        if ($usuario->getSaldo() >= $total) {
             $usuario->setSaldo($usuario->getSaldo() - $total);
+            $em->persist($usuario);
+            $em->flush();
 
             try {
                 $email = (new Email())
                     ->from('tu_correo@gmail.com')
                     ->to($usuario->getEmail())
-                    ->subject('Confirmación de compra en Neo-Game')
+                    ->subject('Confirmación de compra con saldo en Neo-Game')
                     ->html($this->renderView(
                         'emails/confirmacion_compra.html.twig',
                         ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
