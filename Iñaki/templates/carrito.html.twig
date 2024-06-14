@@ -1,209 +1,73 @@
-<?php
+{# templates/carrito.html.twig #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="CSS/carrito.css">
+</head>
+<body>
+    {% include 'cabecera.html.twig' %}
+    <div class="container">
+    <h1>Carrito de Compras</h1>
 
-namespace App\Controller;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use PHPMailer\PHPMailer\PHPMailer;
-use Symfony\Component\Mime\Email;
-use App\Entity\Usuario;
-use App\Entity\Marca;
-use App\Entity\Plataforma;
-use App\Entity\Videojuego;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Exception;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Stripe\Stripe;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+    {% if carrito is empty %}
+        <p>El carrito está vacío actualmente.</p>
+        <img src="{{ asset('Iconos/triste.png') }}" id="icono">
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, item in carrito %}
+                    <tr>
+                        <td>{{ item.nombre }}</td>
+                        <td>{{ item.precio }} €</td>
+                        <td>
+                            <a href="{{ path('decrementar_cantidad', {id: id}) }}"><img src="{{ asset('Iconos/eliminar.png') }}"></a>
+                            {{ item.cantidad }}
+                             <a href="{{ path('incrementar_cantidad', {id: id}) }}">  <img src="{{ asset('Iconos/mas.png') }}"></a>
+                        </td>
+                        <td>{{ item.precio * item.cantidad }} €</td>
+                        <td>
+                            <a href="{{ path('eliminar_carrito', {id: id}) }}">Eliminar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="total">
+            <strong>Total: {{ total }}</strong>
+        </div>
+        <div class="actions">
+            <a href="{{ path('pagar_carrito') }}">
+                <button type="button">Pagar</button>
+            </a>
+        </div>
+        {% if app.User is not null %}
+            {% if app.user.saldo >= total %}
+                <div class="actions">
+                    <a href="{{ path('realizar_pago_Saldo') }}">
+                        <button type="button">Pagar con Saldo</button>
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+        <div class="actions">
+            <a href="{{ path('vaciar_carrito') }}">Vaciar Carrito</a>
+        </div>
+    {% endif %}
+    </div>
 
-
-class PlataformaPago extends AbstractController
-{
-
-    #[Route('/pago', name: 'realizar_pago')]
-public function realizarPago(Request $request, SessionInterface $session, EntityManagerInterface $entityManager, Security $security, MailerInterface $mailer): Response
-{
-    $token = $request->request->get('stripeToken');
-    $nombre = $request->request->get('nombre');
-    $correo = $request->request->get('correo');
-    $direccion = $request->request->get('direccion');
-    Stripe::setApiKey($this->getParameter('stripe_api_key'));
-
-    $carrito = $session->get('carrito', []);
-    $total = 0;
-    foreach ($carrito as $item) {
-        $total += $item['precio'] * $item['cantidad'];
-    }
-
-    try {
-        $user = $security->getUser();
-
-        if ($user === null) {
-            $customer = \Stripe\Customer::create([
-                'name' => $nombre,
-                'email' => $correo,
-                'address' => [
-                    'line1' => $direccion,
-                ],
-                'source' => $token,
-            ]);
-
-            \Stripe\Charge::create([
-                'amount' => $total * 100,
-                'currency' => 'eur',
-                'customer' => $customer->id,
-                'description' => 'Compra en Neo-Game',
-                'metadata' => [
-                    'nombre' => $nombre,
-                    'correo' => $correo,
-                    'direccion' => $direccion,
-                ],
-            ]);
-        } else {
-            $stripeCustomerId = $user->getStripeCustomerId();
-            if (!$stripeCustomerId) {
-                $customer = \Stripe\Customer::create([
-                    'name' => $user->getNombreUsuario() . ' ' . $user->getApellidoUsuario(),
-                    'email' => $user->getEmail(),
-                    'address' => [
-                        'line1' => $user->getDireccion(),
-                    ],
-                    'source' => $token,
-                ]);
-                $stripeCustomerId = $customer->id;
-                $user->setStripeCustomerId($stripeCustomerId);
-                $entityManager->persist($user);
-                $entityManager->flush();
-            } else {
-                $customer = \Stripe\Customer::retrieve($stripeCustomerId);
-                $customer->source = $token;
-                $customer->save();
-            }
-
-            \Stripe\Charge::create([
-                'amount' => $total * 100,
-                'currency' => 'eur',
-                'customer' => $stripeCustomerId,
-                'description' => 'Compra en Neo-Game',
-                'metadata' => [
-                    'nombre' => $user->getNombreUsuario(),
-                    'correo' => $user->getEmail(),
-                    'direccion' => $user->getDireccion(),
-                ],
-            ]);
-        }
-
-        $bonus = $total * 0.05;
-        if ($user !== null) {
-            $user->setSaldo($user->getSaldo() + $bonus);
-            $entityManager->persist($user);
-            try {
-                $email = (new Email())
-                    ->from('tu_correo@gmail.com')
-                    ->to($user->getEmail())
-                    ->subject('Confirmación de compra en Neo-Game')
-                    ->html($this->renderView(
-                        'emails/confirmacion_compra.html.twig',
-                        ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
-                    ));
-                $mailer->send($email);
-        
-                $this->addFlash('success', 'Correo electrónico de confirmación enviado correctamente.');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
-            }
-        } else {
-            try {
-                $email = (new Email())
-                    ->from('tu_correo@gmail.com')
-                    ->to($correo)
-                    ->subject('Confirmación de compra en Neo-Game')
-                    ->html($this->renderView(
-                        'emails/confirmacion_compra.html.twig',
-                        ['carrito' => $carrito, 'fecha' => new \DateTime()]
-                    ));
-                $mailer->send($email);
-        
-                $this->addFlash('success', 'Correo electrónico de confirmación enviado correctamente.');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
-            }
-        }
-
-        foreach ($carrito as $id => $item) {
-            $videojuego = $entityManager->getRepository(Videojuego::class)->find($id);
-
-            if ($videojuego) {
-                $nuevoStock = $videojuego->getStock() - $item['cantidad'];
-                if ($nuevoStock < 0) {
-                    $this->addFlash('error', 'Stock insuficiente para el videojuego: ' . $videojuego->getNombreJuego());
-                    return $this->redirectToRoute('carrito');
-                }
-                $videojuego->setStock($nuevoStock);
-                $entityManager->persist($videojuego);
-            }
-        }
-
-        $entityManager->flush();
-        $session->remove('carrito');
-        return $this->redirectToRoute('confirmacion_pago');
-    } catch (\Stripe\Exception\CardException $e) {
-        $this->addFlash('error', $e->getMessage());
-        return $this->redirectToRoute('carrito'); // Redireccionar al carrito si hay un error
-    }
-}
-
-
-        #[Route('/confirmacion-pago', name: 'confirmacion_pago')]
-    public function confirmacionPago(): Response
-    {
-        return $this->render('confirmacion_pago.html.twig');
-    }
-
-
-    #[Route('/pSaldo', name: 'realizar_pago_Saldo')]
-    public function pagarCarrito(Request $request, MailerInterface $mailer,SessionInterface $session,EntityManagerInterface $em)
-    {
-        $usuario = $this->getUser();
-        $carrito = $session->get('carrito', []);
-        $total = 0;
-        foreach ($carrito as $item) {
-            $total += $item['precio'] * $item['cantidad'];
-        }
-
-        $bonus = 0;
-        if ($usuario->getSaldo() >= $total) {
-            $usuario->setSaldo($usuario->getSaldo() - $total);
-            $em->persist($usuario);
-            $em->flush();
-
-            try {
-                $email = (new Email())
-                    ->from('tu_correo@gmail.com')
-                    ->to($usuario->getEmail())
-                    ->subject('Confirmación de compra con saldo en Neo-Game')
-                    ->html($this->renderView(
-                        'emails/confirmacion_compra.html.twig',
-                        ['carrito' => $carrito, 'fecha' => new \DateTime(), 'bonus' => $bonus]
-                    ));
-                $mailer->send($email);
-
-                $this->addFlash('success', 'Compra realizada correctamente. Correo electrónico de confirmación enviado.');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Error al enviar el correo electrónico: ' . $e->getMessage());
-            }
-            return $this->redirectToRoute('confirmacion_pago');
-        } else {
-            $this->addFlash('error', 'Saldo insuficiente para completar la compra.');
-            return $this->redirectToRoute('carrito');
-        }
-    }
-}
+    {% include 'footer.html.twig' %}
+    {% include 'fondo.html.twig' %}
+</body>
+</html>
